@@ -187,9 +187,9 @@ for rep = 1: numrep
     ini.traMat = traMat;
     %y_true  = max(SEIR_data_gen_test_pred_inf_random_2(param, ini, totDays, startDay),0.01);
     
-    y_true_test  = max(simu_data_generate_approx(param, ini, totDays, startDay, dt),1);
-    y_true_valid = max(simu_data_generate_approx(param, ini, totDays, startDay, dt),1);%y_true;%max(SEIR_data_gen_test_pred_inf_random_dt_2(param, ini, totDays, startDay, dt),1);
-    y_true       = max(simu_data_generate_approx(param, ini, totDays, startDay, dt),1);
+    y_true_test  = max(SEIR_data_gen_test_pred_inf_random_dt_2(param, ini, totDays, startDay, dt),1);
+    y_true_valid = max(SEIR_data_gen_test_pred_inf_random_dt_2(param, ini, totDays, startDay, dt),1);%y_true;%max(SEIR_data_gen_test_pred_inf_random_dt_2(param, ini, totDays, startDay, dt),1);
+    y_true       = max(SEIR_data_gen_test_pred_inf_random_dt_2(param, ini, totDays, startDay, dt),1);
     
     y_obs   = y_true(:, 1: (5*provNum)); % deltaC, deltaCR,  E, I, R
     traj_obs_mat(:, :, rep) = y_obs;
@@ -202,7 +202,7 @@ for rep = 1: numrep
     fprintf('wo Hetero, wo Migrat\n');
     ini.traMat = zeros(provNum);
     
-    f1 = @(x)fmin_simu_data_without_hetero(x, y_obs, ini, 'pois', dt, trainDays_end, startDay );
+    f1 = @(x)SEIR_fminunc_test_pred_inf_wo_h_2(x, y_obs, ini, 'pois', dt, trainDays_end, startDay );
     opts1 = optimoptions('fmincon');
     opts1.MaxIterations =  2000;
     opts1.MaxFunctionEvaluations = 10^6;
@@ -297,7 +297,7 @@ for rep = 1: numrep
     fprintf('wo Hetero, w/ Migrat\n');
     ini.traMat = traMat;
     
-    f1 = @(x)fmin_simu_data_without_hetero(x, y_obs, ini, 'pois', dt, trainDays_end, startDay );
+    f1 = @(x)SEIR_fminunc_test_pred_inf_wo_h_2(x, y_obs, ini, 'pois', dt, trainDays_end, startDay );
     opts1 = optimoptions('fmincon');
     opts1.MaxIterations =  2000;
     opts1.MaxFunctionEvaluations = 10^6;
@@ -391,7 +391,7 @@ for rep = 1: numrep
     fprintf('w/ Hetero, wo Migrat\n');
     ini.traMat = zeros(provNum); mu0 = 0; mu1 = 0;
     
-    f1 = @(x)fmin_simu_data(x, y_obs, ini, 'pois', mu0, mu1, dt, trainDays_end, startDay, 0 );
+    f1 = @(x)SEIR_fminunc_test_pred_inf_multi_2(x, y_obs, ini, 'pois', mu0, mu1, dt, trainDays_end, startDay, 0 );
     opts1 = optimoptions('fmincon');
     opts1.MaxIterations =  2000;
     opts1.MaxFunctionEvaluations = 10^6;
@@ -484,7 +484,7 @@ for rep = 1: numrep
     fprintf('w/ Hetero, w/ Migrat, no GL\n');
     ini.traMat = traMat; mu0 = 0; mu1 = 0;
     
-    f1 = @(x)fmin_simu_data(x, y_obs, ini, 'pois', mu0, beta, dt, trainDays_end, startDay, 0);
+    f1 = @(x)SEIR_fminunc_test_pred_inf_multi_2(x, y_obs, ini, 'pois', mu0, mu1, dt, trainDays_end, startDay, 0);
     opts1 = optimoptions('fmincon');
     opts1.MaxIterations =  2000;
     opts1.MaxFunctionEvaluations = 10^6;
@@ -581,9 +581,12 @@ for rep = 1: numrep
         %for j = 1: length(mu1vec)
         fprintf('the %d-th mu1\n', i);
         
-        mu = muvec(i); %mu1vec(j);
-        f1 = @(x)SEIR_fminunc_test_pred_inf_multi_3(x, y_obs, ini, 'pois', mu, beta, dt, validDays, startDay, sigma );
+        %         mu = muvec(i); %mu1vec(j);
+        %         f1 = @(x)SEIR_fminunc_test_pred_inf_multi_3(x, y_obs, ini, 'pois', mu, beta, dt, validDays, startDay, sigma );
         
+        mu1 = muvec(i)/5000; %mu1vec(j);
+        mu0 = mu1*beta;%mu1/10;
+        f1 = @(x)SEIR_fminunc_test_pred_inf_multi_2(x, y_obs, ini, 'pois', mu0, mu1, dt, trainDays_end, startDay, sigma );
         
         opts1 = optimoptions('fmincon');
         opts1.MaxIterations =  2000;
@@ -593,6 +596,12 @@ for rep = 1: numrep
         lb = [ones(1,2*provNum), zeros(1,provNum)];
         ub = [ones(1,2*provNum) * 100, ones(1,provNum) * 1];
         [params1, ~] = fmincon(f1, params_pre, [],[],[],[],lb,ub,[],opts1);
+        %         if i == 1
+        %             [params1, ~] = fmincon(f1, params_pre, [],[],[],[],lb,ub,[],opts1);
+        %         else
+        %             [params1, ~] = fmincon(f1, reshape(param_wHwMwGL_mat(i-1,:,rep),1,3*provNum), ...
+        %                 [],[],[],[],lb,ub,[],opts1);
+        %         end
         
         param_wHwMwGL_mat(i, :, rep) = params1';
         
