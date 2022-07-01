@@ -27,99 +27,19 @@ opts_gamma.MaxFunctionEvaluations = 10^6;
 opts_gamma.Display = 'off';
 gamma_Germ = fminunc(f_gamma, 0.14, opts_gamma) % will be used as the uniform gamma for all European countries
 
-%% estimate lambda/E0/I0 for each country (without transmission / regularization / prediction, with heterogeneity)
 
-figure(20), clf;
-
-for i = 1:11
-    subplot(3,4,i);
-    country_name_temp = country_names(i);
-    country_ind_temp  = map_country_to_ind(country_name_temp);
-    plot(1:(tot_days-7), newly_confirmed_data_ave(:,country_ind_temp), 'x-');
-    
-    grid on;
-
-    title(sprintf('%s', country_name_temp));
-    set(gca, 'FontSize', 14);
-end
-sgtitle('newly confirmed cases with average', 'FontSize', 20);
-
-
-%%
-
-
-% set the changing point at the 50th day, France 60, Italy 80
-
-change_day = 50;
-dt         = 0.1;
-delta      = 0.14;
-n_country  = length(country_names);
-
-ini.delta  = delta;
-ini.gamma  = gamma_Germ;
-ini.totPop = [5806081, 5521773, 5328212, 8859992, 82979100, 8526932, 60377663, 46733038, 11455358, 66992699, 4857000];
-ini.R0     = accu_recovered_data_ave(1,:);
-ini.I_accu = accu_confirmed_data_ave(1,:);
-ini.n_country = n_country;
-
-infer_days = 102%95; %tot_days - 7;
-
-ini.N_days    = infer_days; 
-ini.change_day = change_day * ones(n_country, 1);
-ini.change_day(map_country_to_ind("France")) = 60;
-ini.change_day(map_country_to_ind("Italy")) = 85;
-ini.change_day(map_country_to_ind("Norway")) = 75;
-
-group_num = 4;
-group_cell = cell(group_num,1);
-group_cell{1} = [1;2;3];
-group_cell{2} = [4;5;6];
-group_cell{3} = [7;8];
-group_cell{4} = [9;10;11];
-% group_cell{1} = [2;3];
-% group_cell{2} = [1;4;5];
-% group_cell{3} = [8;9;10;11];
-% group_cell{4} = [6;7];
-commu_mat_within_clust = zeros(n_country);
-for i = 1:group_num
-    ind_temp = group_cell{i};
-    commu_mat_within_clust(ind_temp,ind_temp) = ones(length(ind_temp));
-end
-
-
-%commu_mat_within_clust = blkdiag(ones(3),ones(3),ones(1),ones(1),ones(3));
-% commu_mat_within_clust = blkdiag(ones(3),ones(3),ones(2),ones(3));
-commu_mat_within_clust = commu_mat_within_clust - eye(n_country);
-
-commu_mat_between_clust = ones(11) - commu_mat_within_clust;
-commu_mat_between_clust = commu_mat_between_clust - eye(11);
-
-ini.commu_mat_within_clust  = commu_mat_within_clust;
-ini.commu_mat_between_clust = commu_mat_between_clust;
-
-mu = 1e4%10^(4);%mu1/10;%0.1;
-mu1  = 10*mu;%10*10^(0.6);%1;
-sigma     = 1;
-
-
-
-%% try to find the competetion of overfittng & underfitting
+%% model 3' with different mu
 
 
 % suppose mu1 = beta mu0 for fixed beta, and we let mu0
 % change in a range
 
 beta = 0.1; % beta = mu0 / mu1, which should be a constant smaller than or equal to 1
-% muvec = 0;
-% muvec = [0, 10.^(2:1:7)];
 muvec = [0, 10.^(2:0.1:7.5)]
-% muvec = 10^3.2
-% muvec = [0, 10.^(-2.5:0.1:2)] * 1e5;%[0, 10.^(-2.5:0.1:2)]; % mu0 = mu1 = 0 means no regularization
 
 
 % sigma = 1;
-% sigma = 5;
-% sigma = 4;
+
 sigma = 1e-6;
   
 %---------------------------------------
@@ -139,12 +59,12 @@ ini.n_country = n_country;
 group_num = 4;
 group_cell = cell(group_num,1);
 
-% group_cell{1} = [1;2;3];
+% group_cell{1} = [1;2;3]; % group assignment
 % group_cell{2} = [4;5;6];
 % group_cell{3} = [7;8];
 % group_cell{4} = [9;10;11];
 
-group_cell{1} = [2;3]
+group_cell{1} = [2;3] % another way of group assignment
 group_cell{2} = [1;4;5]
 group_cell{3} = [8;9;10;11]
 group_cell{4} = [6;7]
@@ -255,15 +175,15 @@ for i = 1:length(muvec)
     
     % optimization process
     if mu == 0
-        f_wGL = @(x) SEIR_loss_Europe_wGL_3(x, newly_confirmed_data_ave, ini, 'pois', dt, mu, beta, trainDays_begin1, trainDays_end1, 0);
+        f_wGL = @(x) fmin_europe_data(x, newly_confirmed_data_ave, ini, 'pois', dt, mu, beta, trainDays_begin1, trainDays_end1, 0);
     else
-        f_wGL = @(x) SEIR_loss_Europe_wGL_3(x, newly_confirmed_data_ave, ini, 'pois', dt, mu, beta, trainDays_begin1, trainDays_end1, sigma);
+        f_wGL = @(x) fmin_europe_data(x, newly_confirmed_data_ave, ini, 'pois', dt, mu, beta, trainDays_begin1, trainDays_end1, sigma);
     end
     tic;
     [params1, ~] = fmincon(f_wGL, param_pre, [], [], [], [], lb, ub, [], opts_wGL);
     % store the inferred parameters
     paramsmat1(i,:) = params1;
-    y_reg = SEIR_data_gen_determ_Europe_wGL_3(params1, ini, dt, trainDays_begin1, validDays_end);
+    y_reg = simu_europe_data_generate_determ(params1, ini, dt, trainDays_begin1, validDays_end);
     
     
     trainAbsErr = abs(y_reg(1:(trainDays_end1-trainDays_begin1+1), 1: n_country) - newly_confirmed_data_ave((trainDays_begin1-yCstartday+1):(trainDays_end1-yCstartday+1), :));
@@ -294,15 +214,15 @@ for i = 1:length(muvec)
     %----------------------------------------------------------------------
     % compute total training error & testing error
     if mu == 0
-        f_wGL = @(x) SEIR_loss_Europe_wGL_3(x, newly_confirmed_data_ave, ini, 'pois', dt, mu, beta, trainDays_begin2, trainDays_end2, 0);
+        f_wGL = @(x) fmin_europe_data(x, newly_confirmed_data_ave, ini, 'pois', dt, mu, beta, trainDays_begin2, trainDays_end2, 0);
     else
-        f_wGL = @(x) SEIR_loss_Europe_wGL_3(x, newly_confirmed_data_ave, ini, 'pois', dt, mu, beta, trainDays_begin2, trainDays_end2, sigma);
+        f_wGL = @(x) fmin_europe_data(x, newly_confirmed_data_ave, ini, 'pois', dt, mu, beta, trainDays_begin2, trainDays_end2, sigma);
     end
     tic;
     [params1, ~] = fmincon(f_wGL, param_pre, [], [], [], [], lb, ub, [], opts_wGL);
     % store the inferred parameters
     paramsmat2(i,:) = params1;
-    y_reg = SEIR_data_gen_determ_Europe_wGL_3(params1, ini, dt, trainDays_begin2, testDays_end);
+    y_reg = simu_europe_data_generate_determ(params1, ini, dt, trainDays_begin2, testDays_end);
     
     traj_newly_conf_train(i,:,:) = y_reg(1:trainDays_end2,:);
     traj_newly_conf_test(i,:,:)  = y_reg((trainDays_end2+1):end,:);
@@ -489,11 +409,11 @@ for i = 1:length(muvec)
 
 end
 
-%% errors for woH, woM, no GL
+%% errors for model 1'
 
 
 
-f_woGL = @(x) SEIR_loss_Europe_woH_1(x, newly_confirmed_data_ave, ini, 'pois', dt, trainDays_begin2, trainDays_end2, 0);
+f_woGL = @(x) fmin_europe_data_without_hetero(x, newly_confirmed_data_ave, ini, 'pois', dt, trainDays_begin2, trainDays_end2, 0);
 opts_wGL = optimoptions('fmincon');
 opts_wGL.MaxIterations =  2000;
 opts_wGL.MaxFunctionEvaluations = 10^6;
@@ -529,7 +449,7 @@ param2(1:2*n_country) = params1(1:2*n_country);
 param2((2*n_country+1):3*n_country) = params1(1+2*n_country)*ones(1,n_country);
 param2((3*n_country+1):4*n_country) = params1(2+2*n_country)*ones(1,n_country);
 params1 = param2;
-y_reg = SEIR_data_gen_determ_Europe_wGL_3(params1, ini, dt, trainDays_begin2, testDays_end);
+y_reg = simu_europe_data_generate_determ(params1, ini, dt, trainDays_begin2, testDays_end);
 y_reg_woHwoM = y_reg;
 
 trainAbsErr = abs(y_reg(1:(trainDays_end2-trainDays_begin2+1), 1: n_country) - newly_confirmed_data_ave((trainDays_begin2-yCstartday+1):(trainDays_end2-yCstartday+1), :));
@@ -599,7 +519,7 @@ params_temp1 = paramsmat2(muind,:);
 
 tic;
 for i = 1: numsamp
-    [traject_temp_newly, ~, traject_temp_accu] = SEIR_data_gen_random_Europe_wGL_3(params_temp1, ini, trainDays_begin1, totDays);
+    [traject_temp_newly, ~, traject_temp_accu] = simu_europe_data_generate_random(params_temp1, ini, trainDays_begin1, totDays);
     trajec_mat_one_Theta(i, :, :) = [traject_temp_newly, traject_temp_accu];
     if max(traject_temp_newly(:, 1: n_country)) == 0
         nan_count = nan_count + 1;
@@ -621,35 +541,40 @@ rng(1218);
 
 % muind = 21;
 muind = 18;
+mu   = muvec(muind);
+
 params1        = paramsmat2(muind,:);
 proposal_dist  = 1e-8 * ones(1, length(params1));
 proposal_dist(1:(1+2*n_country)) = zeros(1, 1+2*n_country);
-iterations    = 5e5;
+iterations    = 5e5; % total number of iterations
 
-numtrasamp    = 1e2;
+numtrasamp    = 1e2; % total number of sampled trajectories
 step          = iterations / numtrasamp
-
+%---------------------------------------------------------
+% store history
 params_post  = zeros(iterations, length(params1));
 traject_post = zeros(numtrasamp, tot_days-7, 2*n_country);
 loss_post    = zeros(iterations, 1);
-
-params_temp1 = params1;
-sigma        = 1;
-ini.I_accu   = accu_confirmed_data_ave(1,:);
-
 Avec = zeros(iterations, 1);
 
-mu   = muvec(muind);
+%---------------------------------------------------------
+
+params_temp1 = params1; % starting point
+sigma        = 1;
+ini.I_accu   = accu_confirmed_data_ave(1,:);
+%---------------------------------------------------------
+
+
 
 tic;
 for i = 1: iterations
     params_post(i, :)     = params_temp1;
     
-    loss_post(i) = SEIR_loss_Europe_wGL_3(params_temp1, newly_confirmed_data_ave(1:ini.N_days,:), ini, 'pois', dt, mu, beta, trainDays_begin2, trainDays_end2, sigma);
+    loss_post(i) = fmin_europe_data(params_temp1, newly_confirmed_data_ave(1:ini.N_days,:), ini, 'pois', dt, mu, beta, trainDays_begin2, trainDays_end2, sigma);
     
     if mod(i, step) == 0
         ini.N_days = tot_days - 7;
-        [traject_temp_newly, ~, traject_temp_accu] = SEIR_data_gen_random_Europe_wGL_3(params_temp1, ini, trainDays_begin1, totDays);
+        [traject_temp_newly, ~, traject_temp_accu] = simu_europe_data_generate_random(params_temp1, ini, trainDays_begin1, totDays);
         traject_post(i/step, :, :) = [traject_temp_newly, traject_temp_accu];
         ini.N_days = infer_days; % reset N_days
     end
@@ -657,8 +582,8 @@ for i = 1: iterations
     params_temp2 = mvnrnd(params_temp1, diag(proposal_dist), 1);
     if min(params_temp2((1+2*n_country) : end)) >= 0
 %       
-        A = SEIR_loss_Europe_wGL_3(params_temp1, newly_confirmed_data_ave(1:ini.N_days,:), ini, 'pois', dt, mu, beta, trainDays_begin2, trainDays_end2, sigma) - ...
-            SEIR_loss_Europe_wGL_3(params_temp2, newly_confirmed_data_ave(1:ini.N_days,:), ini, 'pois', dt, mu, beta, trainDays_begin2, trainDays_end2, sigma);
+        A = fmin_europe_data(params_temp1, newly_confirmed_data_ave(1:ini.N_days,:), ini, 'pois', dt, mu, beta, trainDays_begin2, trainDays_end2, sigma) - ...
+            fmin_europe_data(params_temp2, newly_confirmed_data_ave(1:ini.N_days,:), ini, 'pois', dt, mu, beta, trainDays_begin2, trainDays_end2, sigma);
         Avec(i) = A;    
         A = exp(A);
     else
@@ -826,132 +751,6 @@ sgtitle("Estimated posterior distribution for $\lambda$ in Italy", "FontSize", 4
 
 
 %%
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-%% plot to see how the countrywise training error & testing error change with mu0
-
-err_type = 1; % indicates the error type, should be 1/2
-if err_type == 1
-    train_rela_err_country = train_rela_err1_country; % length(alpha_bet_list) * n_country
-    test_rela_err_country  = test_rela_err1_country;
-    train_abso_err_country = train_abso_err1_country;
-    test_abso_err_country  = test_abso_err1_country;
-else
-    train_rela_err_country = train_rela_err2_country;
-    test_rela_err_country  = test_rela_err2_country;
-    train_abso_err_country = train_abso_err2_country;
-    test_abso_err_country  = test_abso_err2_country;
-end
-
-
-figure(6), clf;
-for i = 1:11
-    subplot(3,4,i);
-    country_name_temp = country_names(i);
-    country_ind_temp  = map_country_to_ind(country_name_temp);
-    plot(log10(muvec(2:end)), log10(test_rela_err_country(2:end,country_ind_temp)), 'x-');
-    hold on;
-    grid on;
-    yline(log10(test_rela_err_country(1,country_ind_temp)), 'r-', '\mu_{bet} = 0', 'Linewidth', 1.5);
-    title(sprintf('%s', country_name_temp));
-    xlabel('log10(\mu_{between})'); ylabel('log10(test error)');
-    set(gca, 'FontSize', 14);
-end
-sgtitle('countrywise relative testing errors', 'FontSize', 20);
-
-%% plot deterministic trajectories of newly confirmed cases
-
-muind = 27;
-figure(9), clf;
-
-for i = 1:11
-    subplot(3,4,i);
-    country_name_temp = country_names(i);
-    country_ind_temp  = map_country_to_ind(country_name_temp);
-    plot(1:(tot_days-7), newly_confirmed_data_ave(:,country_ind_temp), 'x-');
-    hold on;
-    plot(1:(tot_days-7), [reshape(traj_newly_conf_train(muind,:,country_ind_temp),infer_days,1); ...
-        reshape(traj_newly_conf_test(muind,:,country_ind_temp),tot_days-7-infer_days,1)], 'x-');    
-    xline(infer_days, 'Linewidth', 2);
-    grid on;
-    legend('real', 'pred', 'Location', 'northwest');
-    title(sprintf('%s', country_name_temp));
-    set(gca, 'FontSize', 14);
-end
-sgtitle('newly confirmed cases with average & predicted trajectories (determ)', 'FontSize', 20);
-
-
-
-% length(alpha_bet_list), infer_days, n_country
-
-return
-%% plot deterministic trajectories of accumulated confirmed cases
-
-muind = 18;
-figure(9), clf;
-for i = 1:11
-    subplot(3,4,i);
-    country_name_temp = country_names(i);
-    country_ind_temp  = map_country_to_ind(country_name_temp);
-    plot(1:(tot_days-7), accu_confirmed_data_ave(2:end,country_ind_temp), 'x-');
-    hold on;
-    plot(1:(tot_days-7), [reshape(traj_accu_conf_train(muind,:,country_ind_temp),infer_days,1); ...
-        reshape(traj_accu_conf_test(muind,:,country_ind_temp),tot_days-7-infer_days,1)], 'x-');    
-    xline(infer_days, 'Linewidth', 2);
-    grid on;
-    legend('real', 'pred', 'Location', 'northwest');
-    title(sprintf('%s', country_name_temp));
-    set(gca, 'FontSize', 18);
-end
-sgtitle('accumulated confirmed cases with average & predicted trajectories (determ)', 'FontSize', 30);
-
-
-
-%%
-%alpha_ind = 27;
-
-figure(10), clf;
-for i = 1:11
-    subplot(3,4,i);
-    country_name_temp = country_names(i);
-    country_ind_temp  = map_country_to_ind(country_name_temp);
-    
-    hold on;
-    grid on;
-    
-    for j = 1: numsamp
-        scatter(1: tot_days-7, reshape(trajec_mat_one_Theta(j,:,i),tot_days-7,1), 'filled', 'c', 'SizeData', 100)
-    end
-    alpha(.2);
-    plot(1:(tot_days-7), newly_confirmed_data_ave(:,country_ind_temp), 'rx-', 'LineWidth', 1);
-    plot(1:(tot_days-7), [reshape(traj_newly_conf_train(muind, :,country_ind_temp), infer_days, 1); ...
-        reshape(traj_newly_conf_test(muind,:,country_ind_temp), tot_days - 7 - infer_days, 1)], 'x-');
-%     plot(1:(tot_days-7), [newly_conf_inf_determ_train(:,country_ind_temp); ...
-%         newly_conf_inf_determ_test(:,country_ind_temp)], 'x-', 'LineWidth', 1, 'Color', 'b');
-    
-    xline(infer_days, 'Linewidth', 2);
-    %legend('real', 'pred');
-    title(sprintf('%s', country_name_temp));
-    set(gca, 'FontSize', 14);
-    
-end
-
 
 
 
