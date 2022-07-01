@@ -1,4 +1,4 @@
-function [yC, yCR, yE, yH, yR] = simu_data_generate_approx(param, ini, totday, startday, dt)
+function y_return = simu_data_generate_random_approx(param, ini, totday, startday, dt)
 
 % function to simulate the epidemic data
 % the generation of the data does not follow the exactly same probability
@@ -143,3 +143,5 @@ yE  = yE(startday: end, :);
 yCR = yCR(startday: end, :);
 yH  = yH(startday: end, :);
 yR  = yR(startday: end, :);
+
+y_return = [yC, yCR, yE, yH, yR];

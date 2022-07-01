@@ -61,6 +61,8 @@ dt      = 0.1;
 %%
 numrep = 1e2;
 sigma  = 10^(-6);
+% sigma  = 10^(-3);
+% sigma  = 1;
 
 traj_obs_mat = zeros(totDays, 5*provNum, numrep); % store observable trajectories
 traj_obs_test_mat  = zeros(totDays, 5*provNum, numrep); % store observable trajectories
@@ -187,9 +189,9 @@ for rep = 1: numrep
     ini.traMat = traMat;
     %y_true  = max(SEIR_data_gen_test_pred_inf_random_2(param, ini, totDays, startDay),0.01);
     
-    y_true_test  = max(SEIR_data_gen_test_pred_inf_random_dt_2(param, ini, totDays, startDay, dt),1);
-    y_true_valid = max(SEIR_data_gen_test_pred_inf_random_dt_2(param, ini, totDays, startDay, dt),1);%y_true;%max(SEIR_data_gen_test_pred_inf_random_dt_2(param, ini, totDays, startDay, dt),1);
-    y_true       = max(SEIR_data_gen_test_pred_inf_random_dt_2(param, ini, totDays, startDay, dt),1);
+    y_true_test  = max(simu_data_generate_random_approx(param, ini, totDays, startDay, dt),1);
+    y_true_valid = max(simu_data_generate_random_approx(param, ini, totDays, startDay, dt),1);%y_true;%max(SEIR_data_gen_test_pred_inf_random_dt_2(param, ini, totDays, startDay, dt),1);
+    y_true       = max(simu_data_generate_random_approx(param, ini, totDays, startDay, dt),1);
     
     y_obs   = y_true(:, 1: (5*provNum)); % deltaC, deltaCR,  E, I, R
     traj_obs_mat(:, :, rep) = y_obs;
@@ -202,7 +204,7 @@ for rep = 1: numrep
     fprintf('wo Hetero, wo Migrat\n');
     ini.traMat = zeros(provNum);
     
-    f1 = @(x)SEIR_fminunc_test_pred_inf_wo_h_2(x, y_obs, ini, 'pois', dt, trainDays_end, startDay );
+    f1 = @(x)fmin_simu_data_without_hetero(x, y_obs, ini, 'pois', dt, trainDays_end, startDay );
     opts1 = optimoptions('fmincon');
     opts1.MaxIterations =  2000;
     opts1.MaxFunctionEvaluations = 10^6;
@@ -222,10 +224,10 @@ for rep = 1: numrep
     R_test  = zeros(1, provNum);
     params1_valid = params1;
     R_valid = zeros(1, provNum);
-    y_reg_train = SEIR_data_gen_test_pred_inf_determ_wo_h_2(params1, ini, dt, trainDays_end-startDay+1, 1, R_train);
-    y_reg_valid = SEIR_data_gen_test_pred_inf_determ_wo_h_2(params1_valid, ini, dt, validDays_end-startDay+1, 1, R_valid);
+    y_reg_train = simu_data_generate_determ_without_hetero(params1, ini, dt, trainDays_end-startDay+1, 1, R_train);
+    y_reg_valid = simu_data_generate_determ_without_hetero(params1_valid, ini, dt, validDays_end-startDay+1, 1, R_valid);
     y_reg_valid = y_reg_valid(validDays_start:validDays_end,:);
-    y_reg_test  = SEIR_data_gen_test_pred_inf_determ_wo_h_2(params1_test, ini, dt, testDays_end-startDay+1, 1, R_test);
+    y_reg_test  = simu_data_generate_determ_without_hetero(params1_test, ini, dt, testDays_end-startDay+1, 1, R_test);
     y_reg_test  = y_reg_test(testDays_start:testDays_end,:);
     traj_train_woHwoM_mat(:, :, rep) = y_reg_train(:, 1: provNum);
     traj_valid_woHwoM_mat(:, :, rep) = y_reg_valid(:, 1: provNum);
@@ -297,7 +299,7 @@ for rep = 1: numrep
     fprintf('wo Hetero, w/ Migrat\n');
     ini.traMat = traMat;
     
-    f1 = @(x)SEIR_fminunc_test_pred_inf_wo_h_2(x, y_obs, ini, 'pois', dt, trainDays_end, startDay );
+    f1 = @(x)fmin_simu_data_without_hetero(x, y_obs, ini, 'pois', dt, trainDays_end, startDay );
     opts1 = optimoptions('fmincon');
     opts1.MaxIterations =  2000;
     opts1.MaxFunctionEvaluations = 10^6;
@@ -316,10 +318,10 @@ for rep = 1: numrep
     R_test  = zeros(1, provNum);
     params1_valid = params1;
     R_valid = zeros(1, provNum);
-    y_reg_train = SEIR_data_gen_test_pred_inf_determ_wo_h_2(params1, ini, dt, trainDays_end-startDay+1, 1, R_train);
-    y_reg_valid = SEIR_data_gen_test_pred_inf_determ_wo_h_2(params1_valid, ini, dt, validDays_end-startDay+1, 1, R_valid);
+    y_reg_train = simu_data_generate_determ_without_hetero(params1, ini, dt, trainDays_end-startDay+1, 1, R_train);
+    y_reg_valid = simu_data_generate_determ_without_hetero(params1_valid, ini, dt, validDays_end-startDay+1, 1, R_valid);
     y_reg_valid = y_reg_valid(validDays_start:validDays_end,:);
-    y_reg_test  = SEIR_data_gen_test_pred_inf_determ_wo_h_2(params1_test, ini, dt, testDays_end-startDay+1, 1, R_test);
+    y_reg_test  = simu_data_generate_determ_without_hetero(params1_test, ini, dt, testDays_end-startDay+1, 1, R_test);
     y_reg_test  = y_reg_test(testDays_start:testDays_end,:);
     traj_train_woHwM_mat(:, :, rep) = y_reg_train(:, 1: provNum);
     traj_valid_woHwM_mat(:, :, rep) = y_reg_valid(:, 1: provNum);
@@ -389,9 +391,9 @@ for rep = 1: numrep
     %-----------------------------------------------------------------------------------------------------
     % w/ Hetero, wo Migrat
     fprintf('w/ Hetero, wo Migrat\n');
-    ini.traMat = zeros(provNum); mu0 = 0; mu1 = 0;
+    ini.traMat = zeros(provNum); 
     
-    f1 = @(x)SEIR_fminunc_test_pred_inf_multi_2(x, y_obs, ini, 'pois', mu0, mu1, dt, trainDays_end, startDay, 0 );
+    f1 = @(x)fmin_simu_data(x, y_obs, ini, 'pois', 0, beta, dt, trainDays_end, startDay, 0);
     opts1 = optimoptions('fmincon');
     opts1.MaxIterations =  2000;
     opts1.MaxFunctionEvaluations = 10^6;
@@ -409,10 +411,10 @@ for rep = 1: numrep
     R_test  = zeros(1, provNum);
     params1_valid = params1;
     R_valid = zeros(1, provNum);
-    y_reg_train = SEIR_data_gen_test_pred_inf_determ_2(params1, ini, dt, trainDays_end-startDay+1, 1, R_train);
-    y_reg_valid = SEIR_data_gen_test_pred_inf_determ_2(params1_valid, ini, dt, validDays_end-startDay+1, 1, R_valid);
+    y_reg_train = simu_data_generate_determ(params1, ini, dt, trainDays_end-startDay+1, 1, R_train);
+    y_reg_valid = simu_data_generate_determ(params1_valid, ini, dt, validDays_end-startDay+1, 1, R_valid);
     y_reg_valid = y_reg_valid(validDays_start:validDays_end,:);
-    y_reg_test  = SEIR_data_gen_test_pred_inf_determ_2(params1_test, ini, dt, testDays_end-startDay+1, 1, R_test);
+    y_reg_test  = simu_data_generate_determ(params1_test, ini, dt, testDays_end-startDay+1, 1, R_test);
     y_reg_test  = y_reg_test(testDays_start:testDays_end,:);
     traj_train_wHwoM_mat(:, :, rep) = y_reg_train(:, 1: provNum);
     traj_valid_wHwoM_mat(:, :, rep) = y_reg_valid(:, 1: provNum);
@@ -482,9 +484,9 @@ for rep = 1: numrep
     %-----------------------------------------------------------------------------------------------------
     % w/ Hetero, w/ Migrat, no GL
     fprintf('w/ Hetero, w/ Migrat, no GL\n');
-    ini.traMat = traMat; mu0 = 0; mu1 = 0;
+    ini.traMat = traMat; 
     
-    f1 = @(x)SEIR_fminunc_test_pred_inf_multi_2(x, y_obs, ini, 'pois', mu0, mu1, dt, trainDays_end, startDay, 0);
+    f1 = @(x)fmin_simu_data(x, y_obs, ini, 'pois', 0, beta, dt, trainDays_end, startDay, 0);
     opts1 = optimoptions('fmincon');
     opts1.MaxIterations =  2000;
     opts1.MaxFunctionEvaluations = 10^6;
@@ -501,10 +503,10 @@ for rep = 1: numrep
     R_test  = zeros(1, provNum);
     params1_valid = params1;
     R_valid = zeros(1, provNum);
-    y_reg_train = SEIR_data_gen_test_pred_inf_determ_2(params1, ini, dt, trainDays_end-startDay+1, 1, R_train);
-    y_reg_valid = SEIR_data_gen_test_pred_inf_determ_2(params1_valid, ini, dt, validDays_end-startDay+1, 1, R_valid);
+    y_reg_train = simu_data_generate_determ(params1, ini, dt, trainDays_end-startDay+1, 1, R_train);
+    y_reg_valid = simu_data_generate_determ(params1_valid, ini, dt, validDays_end-startDay+1, 1, R_valid);
     y_reg_valid = y_reg_valid(validDays_start:validDays_end,:);
-    y_reg_test  = SEIR_data_gen_test_pred_inf_determ_2(params1_test, ini, dt, testDays_end-startDay+1, 1, R_test);
+    y_reg_test  = simu_data_generate_determ(params1_test, ini, dt, testDays_end-startDay+1, 1, R_test);
     y_reg_test  = y_reg_test(testDays_start:testDays_end,:);
     traj_train_wHwM_mat(:, :, rep) = y_reg_train(:, 1: provNum);
     traj_valid_wHwM_mat(:, :, rep) = y_reg_valid(:, 1: provNum);
@@ -581,13 +583,9 @@ for rep = 1: numrep
         %for j = 1: length(mu1vec)
         fprintf('the %d-th mu1\n', i);
         
-        %         mu = muvec(i); %mu1vec(j);
-        %         f1 = @(x)SEIR_fminunc_test_pred_inf_multi_3(x, y_obs, ini, 'pois', mu, beta, dt, validDays, startDay, sigma );
-        
-        mu1 = muvec(i)/5000; %mu1vec(j);
-        mu0 = mu1*beta;%mu1/10;
-        f1 = @(x)SEIR_fminunc_test_pred_inf_multi_2(x, y_obs, ini, 'pois', mu0, mu1, dt, trainDays_end, startDay, sigma );
-        
+        mu = muvec(i); %mu1vec(j);
+        f1 = @(x)fmin_simu_data(x, y_obs, ini, 'pois', mu, beta, dt, trainDays_end, startDay, sigma );
+                
         opts1 = optimoptions('fmincon');
         opts1.MaxIterations =  2000;
         opts1.MaxFunctionEvaluations = 10^6;
@@ -610,10 +608,10 @@ for rep = 1: numrep
         R_test  = zeros(1, provNum);
         params1_valid = params1;
         R_valid = zeros(1, provNum);
-        y_reg_train = SEIR_data_gen_test_pred_inf_determ_2(params1, ini, dt, trainDays_end-startDay+1, 1, R_train);
-        y_reg_valid = SEIR_data_gen_test_pred_inf_determ_2(params1_valid, ini, dt, validDays_end-startDay+1, 1, R_valid);
+        y_reg_train = simu_data_generate_determ(params1, ini, dt, trainDays_end-startDay+1, 1, R_train);
+        y_reg_valid = simu_data_generate_determ(params1_valid, ini, dt, validDays_end-startDay+1, 1, R_valid);
         y_reg_valid = y_reg_valid(validDays_start:validDays_end,:);
-        y_reg_test  = SEIR_data_gen_test_pred_inf_determ_2(params1_test, ini, dt, testDays_end-startDay+1, 1, R_test);
+        y_reg_test  = simu_data_generate_determ(params1_test, ini, dt, testDays_end-startDay+1, 1, R_test);
         y_reg_test  = y_reg_test(testDays_start:testDays_end,:);
         %-------------------------
         trainErr_1 = abs(y_reg_train(:, 1: provNum) - y_true(1: trainDays_end-startDay+1, 1: provNum));
@@ -1211,525 +1209,5 @@ grid on;
 legend('Model 1', 'Model 2', 'Model 3', 'Model 4', 'Model 5','Location','best', 'FontSize', FontSize_legend, 'interpreter', 'latex');
 
 sgtitle("Absolute errors of predicted trajectories for all models", 'FontSize', 42, 'interpreter', 'latex');
-
-
-%%
-
-
-
-
-
-%               change sigma to 1e-3
-
-
-
-
-
-
-%% another sigma
-
-trainErr_wHwMwGL_mat1_sigma2 = zeros(length(muvec), numrep);
-validErr_wHwMwGL_mat1_sigma2 = zeros(length(muvec), numrep);
-testErr_wHwMwGL_mat1_sigma2  = zeros(length(muvec), numrep);
-
-trainErr_wHwMwGL_mat2_sigma2 = zeros(length(muvec), numrep);
-validErr_wHwMwGL_mat2_sigma2 = zeros(length(muvec), numrep);
-testErr_wHwMwGL_mat2_sigma2  = zeros(length(muvec), numrep);
-
-trainErr_wHwMwGL_mat3_sigma2 = zeros(length(muvec), numrep);
-validErr_wHwMwGL_mat3_sigma2 = zeros(length(muvec), numrep);
-testErr_wHwMwGL_mat3_sigma2  = zeros(length(muvec), numrep);
-
-trainErr_wHwMwGL_mat4_sigma2 = zeros(length(muvec), numrep);
-validErr_wHwMwGL_mat4_sigma2 = zeros(length(muvec), numrep);
-testErr_wHwMwGL_mat4_sigma2  = zeros(length(muvec), numrep);
-
-param_wHwMwGL_mat_sigma2 = zeros(length(muvec), 3*provNum, numrep);
-
-sigma2 = 1e-3;
-
-for rep = 1: numrep
-    fprintf('the %d th replica\n', rep);
-    
-    
-    y_true       = reshape(traj_obs_mat(:, :, rep), totDays, 5*provNum);
-    y_true_test  = reshape(traj_obs_test_mat(:, :, rep), totDays, 5*provNum);
-    y_true_valid = reshape(traj_obs_valid_mat(:, :, rep), totDays, 5*provNum);
-    
-    %%
-    
-    %----------------------------------------------------------------------
-    % w/ Hetero, w/ Migrat, w/ GL
-    fprintf('w/ Hetero, w/ Migrat, w/ GL\n');
-    ini.traMat = traMat;
-    params_pre = [I_pre  * ones(1, length(provPop)), E_pre * ones(1, length(provPop)), lambda_pre*ones(1,length(provPop))];
-    for i = 1: length(muvec)
-        %for j = 1: length(mu1vec)
-        fprintf('the %d-th mu1\n', i);
-        
-        %         mu = muvec(i); %mu1vec(j);
-        %         f1 = @(x)SEIR_fminunc_test_pred_inf_multi_3(x, y_obs, ini, 'pois', mu, beta, dt, validDays, startDay, sigma2 );
-        
-        mu1 = muvec(i)/5000; %mu1vec(j);
-        mu0 = mu1*beta;%mu1/10;
-        f1 = @(x)SEIR_fminunc_test_pred_inf_multi_2(x, y_true, ini, 'pois', mu0, mu1, dt, trainDays_end, startDay, sigma2 );
-        
-        opts1 = optimoptions('fmincon');
-        opts1.MaxIterations =  2000;
-        opts1.MaxFunctionEvaluations = 10^6;
-        opts1.Display = 'off';%'off';%'iter-detailed';
-        opts1.OptimalityTolerance = 1e-10;
-        lb = [ones(1,2*provNum), zeros(1,provNum)];
-        ub = [ones(1,2*provNum) * 100, ones(1,provNum) * 1];
-        tic
-        [params1, ~] = fmincon(f1, params_pre, [],[],[],[],lb,ub,[],opts1);
-        toc;
-        %         if i == 1
-        %             [params1, ~] = fmincon(f1, params_pre, [],[],[],[],lb,ub,[],opts1);
-        %         else
-        %             [params1, ~] = fmincon(f1, reshape(param_wHwMwGL_mat(i-1,:,rep),1,3*provNum), ...
-        %                 [],[],[],[],lb,ub,[],opts1);
-        %         end
-        
-        param_wHwMwGL_mat_sigma2(i, :, rep) = params1';
-        
-        R_train = zeros(1, provNum);
-        params1_test = params1;
-        R_test  = zeros(1, provNum);
-        params1_valid = params1;
-        R_valid = zeros(1, provNum);
-        y_reg_train = SEIR_data_gen_test_pred_inf_determ_2(params1, ini, dt, trainDays_end-startDay+1, 1, R_train);
-        y_reg_valid = SEIR_data_gen_test_pred_inf_determ_2(params1_valid, ini, dt, validDays_end-startDay+1, 1, R_valid);
-        y_reg_valid = y_reg_valid(validDays_start:validDays_end,:);
-        y_reg_test  = SEIR_data_gen_test_pred_inf_determ_2(params1_test, ini, dt, testDays_end-startDay+1, 1, R_test);
-        y_reg_test  = y_reg_test(testDays_start:testDays_end,:);
-        %-------------------------
-        trainErr_1 = abs(y_reg_train(:, 1: provNum) - y_true(1: trainDays_end-startDay+1, 1: provNum));
-        trainErr_vec_1 = (sum(trainErr_1))' ./ (y_true(trainDays_end-startDay+1, (3*provNum+1):(4*provNum))  ...
-            -   y_true(1, (3*provNum+1):(4*provNum))   )' ;
-        validErr_1  = abs(y_reg_valid(:, 1: provNum) ...
-            - y_true_valid(validDays_start: validDays_end, 1: provNum));
-        validErr_vec_1 = (sum(validErr_1))' ./ (y_true_valid(validDays_end, (3*provNum+1):(4*provNum))  ...
-            -   y_true_valid(validDays_start, (3*provNum+1):(4*provNum))   )' ;
-        testErr_1  = abs(y_reg_test(:, 1: provNum) ...
-            - y_true_test(testDays_start: testDays_end, 1: provNum));
-        testErr_vec_1 = (sum(testErr_1))' ./ (y_true_test(testDays_end, (3*provNum+1):(4*provNum))  ...
-            -   y_true_test(testDays_start, (3*provNum+1):(4*provNum))   )' ;
-        trainErr_wHwMwGL_mat1_sigma2(i,rep) = sum(trainErr_vec_1);
-        validErr_wHwMwGL_mat1_sigma2(i,rep)  = sum(validErr_vec_1);
-        testErr_wHwMwGL_mat1_sigma2(i,rep)  = sum(testErr_vec_1);
-        %--------------------------
-        trainErr_2  = abs(y_reg_train(:, 1: provNum) ...
-            - y_true(1: trainDays_end-startDay+1, 1: provNum)) ...
-            ./ y_true(1: trainDays_end-startDay+1, 1: provNum);
-        trainErr_vec_2 = (sum(trainErr_2))' / trainDays_end ;
-        validErr_2  = abs(y_reg_valid(:, 1: provNum) ...
-            - y_true_valid(validDays_start: validDays_end, 1: provNum)) ...
-            ./ y_true_valid(validDays_start: validDays_end, 1: provNum);
-        validErr_vec_2 = (sum(validErr_2))' / (validDays_end - validDays_start + 1) ;
-        testErr_2  = abs(y_reg_test(:, 1: provNum) ...
-            - y_true_test(testDays_start: testDays_end, 1: provNum)) ...
-            ./ y_true_test(testDays_start: testDays_end, 1: provNum);
-        testErr_vec_2 = (sum(testErr_2))' / (testDays_end - testDays_start + 1) ;
-        trainErr_wHwMwGL_mat2_sigma2(i,rep) = sum(trainErr_vec_2);
-        validErr_wHwMwGL_mat2_sigma2(i,rep) = sum(validErr_vec_2);
-        testErr_wHwMwGL_mat2_sigma2(i,rep)  = sum(testErr_vec_2);
-        %--------------------------
-        trainErr_3  = ( abs(y_reg_train(:, 1: provNum) ...
-            - y_true(1: trainDays_end-startDay+1, 1: provNum)) ...
-            ./ y_true(1: trainDays_end-startDay+1, 1: provNum) ).^2;
-        trainErr_vec_3 = sqrt((sum(trainErr_3 .* y_true(1: trainDays_end-startDay+1, 1: provNum)...
-            ./ (ones(trainDays_end,1)*(y_true(trainDays_end-startDay+1, (3*provNum+1):(4*provNum))  ...
-            -   y_true(1, (3*provNum+1):(4*provNum)))) ))' ) ;
-        validErr_3  = ( abs(y_reg_valid(:, 1: provNum) ...
-            - y_true_valid(validDays_start: validDays_end, 1: provNum)) ...
-            ./ y_true_valid(validDays_start: validDays_end, 1: provNum) ).^2;
-        validErr_vec_3 = sqrt((sum(validErr_3 .* y_true_valid(validDays_start: validDays_end, 1: provNum)...
-            ./ (ones(validDays_end-validDays_start+1,1)*(y_true_valid(validDays_end, (3*provNum+1):(4*provNum))  ...
-            -   y_true_valid(validDays_start, (3*provNum+1):(4*provNum)))) ))' ) ;
-        testErr_3  = ( abs(y_reg_test(:, 1: provNum) ...
-            - y_true_test(testDays_start: testDays_end, 1: provNum)) ...
-            ./ y_true_test(testDays_start: testDays_end, 1: provNum) ).^2;
-        testErr_vec_3 = sqrt((sum(testErr_3 .* y_true_test(testDays_start: testDays_end, 1: provNum)...
-            ./ (ones(testDays_end-testDays_start+1,1)*(y_true_test(testDays_end, (3*provNum+1):(4*provNum))  ...
-            -   y_true_test(testDays_start, (3*provNum+1):(4*provNum)))) ))' ) ;
-        trainErr_wHwMwGL_mat3_sigma2(i,rep) = sum(trainErr_vec_3);
-        validErr_wHwMwGL_mat3_sigma2(i,rep) = sum(validErr_vec_3);
-        testErr_wHwMwGL_mat3_sigma2(i,rep)  = sum(testErr_vec_3);
-        %--------------------------
-        trainErr_vec_4 = sqrt( (sum(trainErr_3))' / (trainDays_end-startDay+1) );
-        validErr_vec_4 = sqrt( (sum(validErr_3))' / (validDays_end - validDays_start+1) );
-        testErr_vec_4 = sqrt( (sum(testErr_3))' / (testDays_end-testDays_start+1) );
-        trainErr_wHwMwGL_mat4_sigma2(i,rep) = sum(trainErr_vec_4);
-        validErr_wHwMwGL_mat4_sigma2(i,rep) = sum(validErr_vec_4);
-        testErr_wHwMwGL_mat4_sigma2(i,rep) = sum(testErr_vec_4);
-        
-    end
-    
-    fprintf('\n')
-    
-    
-end
-
-
-
-
-%%
-
-trainDays_end
-validDays_end
-totDays
-
-fprintf('relative error with weighted average, sigma_2 = 10^%.1f\n\n', log10(sigma2));
-
-fprintf('\n');
-for i = 1: length(muvec)
-    fprintf('w/ H, w/ M, w/ GL, mu = 10^%.1f, trainErr: mean %.4f, std %6.4f, testErr: mean %6.4f, std %.4f \n', log10(muvec(i)), mean(trainErr_wHwMwGL_mat1_sigma2(i,:)/provNum),...
-        std(trainErr_wHwMwGL_mat1_sigma2(i,:)/provNum),  mean(testErr_wHwMwGL_mat1_sigma2(i,:)/provNum), std(testErr_wHwMwGL_mat1_sigma2(i,:)/provNum));
-end
-
-%%
-
-fprintf('relative error with equal weights \n\n');
-
-fprintf('\n');
-for i = 1: length(muvec)
-    %fprintf('mu0 = %6.4f: \n\n', mu0vec(i));
-    %     for j = 1: length(mu1vec)
-    %         fprintf('w/ H, w/ M, w/ GL, mu1 = %6.4f, trainErr: mean %6.4f, std % 6.4f, testErr: mean %6.4f, std % 6.4f \n', mu1vec(j), mean(trainErr_wHwMwGL_mat(i,j,:)),...
-    %             std(trainErr_wHwMwGL_mat(i,j,:)),  mean(testErr_wHwMwGL_mat(i,j,:)), std(testErr_wHwMwGL_mat(i,j,:)));
-    %     end
-    
-    fprintf('w/ H, w/ M, w/ GL, mu1 = %6.4f, trainErr: mean %6.4f, std % 6.4f, testErr: mean %6.4f, std % 6.4f \n', muvec(i), mean(trainErr_wHwMwGL_mat2_sigma2(i,:)/provNum),...
-        std(trainErr_wHwMwGL_mat2_sigma2(i,:)/provNum),  mean(testErr_wHwMwGL_mat2_sigma2(i,:)/provNum), std(testErr_wHwMwGL_mat2_sigma2(i,:)/provNum));
-    
-end
-
-%%
-
-fprintf('\nrelative MSE with weighted average\n\n');
-
-fprintf('\n');
-for i = 1: length(muvec)
-    %fprintf('mu0 = %6.4f: \n\n', mu0vec(i));
-    %     for j = 1: length(mu1vec)
-    %         fprintf('w/ H, w/ M, w/ GL, mu1 = %6.4f, trainErr: mean %6.4f, std % 6.4f, testErr: mean %6.4f, std % 6.4f \n', mu1vec(j), mean(trainErr_wHwMwGL_mat(i,j,:)),...
-    %             std(trainErr_wHwMwGL_mat(i,j,:)),  mean(testErr_wHwMwGL_mat(i,j,:)), std(testErr_wHwMwGL_mat(i,j,:)));
-    %     end
-    
-    fprintf('w/ H, w/ M, w/ GL, mu1 = 10^%.1f, trainErr: mean %6.4f, std % 6.4f, testErr: mean %6.4f, std % 6.4f \n', log10(muvec(i)), mean(trainErr_wHwMwGL_mat3_sigma2(i,:)/provNum),...
-        std(trainErr_wHwMwGL_mat3_sigma2(i,:)/provNum),  mean(testErr_wHwMwGL_mat3_sigma2(i,:)/provNum), std(testErr_wHwMwGL_mat3_sigma2(i,:)/provNum));
-    
-end
-
-%%
-fprintf('\nrelative MSE with simple average\n\n');
-
-fprintf('\n');
-for i = 1: length(muvec)
-    %fprintf('mu0 = %6.4f: \n\n', mu0vec(i));
-    %     for j = 1: length(mu1vec)
-    %         fprintf('w/ H, w/ M, w/ GL, mu1 = %6.4f, trainErr: mean %6.4f, std % 6.4f, testErr: mean %6.4f, std % 6.4f \n', mu1vec(j), mean(trainErr_wHwMwGL_mat(i,j,:)),...
-    %             std(trainErr_wHwMwGL_mat(i,j,:)),  mean(testErr_wHwMwGL_mat(i,j,:)), std(testErr_wHwMwGL_mat(i,j,:)));
-    %     end
-    
-    fprintf('w/ H, w/ M, w/ GL, mu1 = 10^%.1f, trainErr: mean %6.4f, std % 6.4f, testErr: mean %6.4f, std % 6.4f \n', log10(muvec(i)), mean(trainErr_wHwMwGL_mat4_sigma2(i,:)/provNum),...
-        std(trainErr_wHwMwGL_mat4_sigma2(i,:)/provNum),  mean(testErr_wHwMwGL_mat4_sigma2(i,:)/provNum), std(testErr_wHwMwGL_mat4_sigma2(i,:)/provNum));
-    
-end
-
-
-return
-
-
-%%
-
-
-fprintf('estimated lambda \n\n');
-
-fprintf('\n');
-for i = 1: length(muvec)
-    %fprintf('mu0 = %6.4f: \n\n', mu0vec(i));
-    %     for j = 1: length(mu1vec)
-    %         fprintf('w/ H, w/ M, w/ GL, mu1 = %6.4f, trainErr: mean %6.4f, std % 6.4f, testErr: mean %6.4f, std % 6.4f \n', mu1vec(j), mean(trainErr_wHwMwGL_mat(i,j,:)),...
-    %             std(trainErr_wHwMwGL_mat(i,j,:)),  mean(testErr_wHwMwGL_mat(i,j,:)), std(testErr_wHwMwGL_mat(i,j,:)));
-    %     end
-    
-    fprintf('w/ H, w/ M, wGL, mu1 10^%.1f, lambda1: mean %6.4f, std % 6.4f, lambda2: mean %6.4f, std % 6.4f \n', log10(muvec(i)), ...
-        mean(reshape(param_wHwMwGL_mat_sigma2(i,9,:), numrep,1)), std(reshape(param_wHwMwGL_mat_sigma2(i,9,:), numrep,1)), ...
-        mean(reshape(param_wHwMwGL_mat_sigma2(i,10,:), numrep,1)), std(reshape(param_wHwMwGL_mat_sigma2(i,10,:), numrep,1)));
-    fprintf('                            lambda3: mean %6.4f, std % 6.4f, lambda4: mean %6.4f, std % 6.4f \n', ...
-        mean(reshape(param_wHwMwGL_mat_sigma2(i,11,:), numrep,1)), std(reshape(param_wHwMwGL_mat_sigma2(i,11,:), numrep,1)), ...
-        mean(reshape(param_wHwMwGL_mat_sigma2(i,12,:), numrep,1)), std(reshape(param_wHwMwGL_mat_sigma2(i,12,:), numrep,1)));
-    
-    
-    
-end
-
-%%
-
-
-
-
-
-
-
-
-
-
-
-%               change sigma to 1
-
-
-
-
-
-
-
-
-
-
-%% a third sigma
-
-trainErr_wHwMwGL_mat1_sigma3 = zeros(length(muvec), numrep);
-validErr_wHwMwGL_mat1_sigma3 = zeros(length(muvec), numrep);
-testErr_wHwMwGL_mat1_sigma3  = zeros(length(muvec), numrep);
-
-trainErr_wHwMwGL_mat2_sigma3 = zeros(length(muvec), numrep);
-validErr_wHwMwGL_mat2_sigma3 = zeros(length(muvec), numrep);
-testErr_wHwMwGL_mat2_sigma3  = zeros(length(muvec), numrep);
-
-trainErr_wHwMwGL_mat3_sigma3 = zeros(length(muvec), numrep);
-validErr_wHwMwGL_mat3_sigma3 = zeros(length(muvec), numrep);
-testErr_wHwMwGL_mat3_sigma3  = zeros(length(muvec), numrep);
-
-trainErr_wHwMwGL_mat4_sigma3 = zeros(length(muvec), numrep);
-validErr_wHwMwGL_mat4_sigma3 = zeros(length(muvec), numrep);
-testErr_wHwMwGL_mat4_sigma3  = zeros(length(muvec), numrep);
-
-param_wHwMwGL_mat_sigma3 = zeros(length(muvec), 3*provNum, numrep);
-
-sigma3 = 1;
-
-for rep = 1: numrep
-    fprintf('the %d th replica\n', rep);
-    
-    
-    y_true       = reshape(traj_obs_mat(:, :, rep), totDays, 5*provNum);
-    y_true_test  = reshape(traj_obs_test_mat(:, :, rep), totDays, 5*provNum);
-    y_true_valid = reshape(traj_obs_valid_mat(:, :, rep), totDays, 5*provNum);
-    
-    %%
-    
-    %----------------------------------------------------------------------
-    % w/ Hetero, w/ Migrat, w/ GL
-    fprintf('w/ Hetero, w/ Migrat, w/ GL\n');
-    ini.traMat = traMat;
-    params_pre = [I_pre  * ones(1, length(provPop)), E_pre * ones(1, length(provPop)), lambda_pre*ones(1,length(provPop))];
-    for i = 1: length(muvec)
-        %for j = 1: length(mu1vec)
-        fprintf('the %d-th mu1\n', i);
-        
-        %         mu = muvec(i); %mu1vec(j);
-        %         f1 = @(x)SEIR_fminunc_test_pred_inf_multi_3(x, y_obs, ini, 'pois', mu, beta, dt, validDays, startDay, sigma3 );
-       
-        mu1 = muvec(i)/5000; %mu1vec(j);
-        mu0 = mu1*beta;%mu1/10;
-        f1 = @(x)SEIR_fminunc_test_pred_inf_multi_2(x, y_true, ini, 'pois', mu0, mu1, dt, trainDays_end, startDay, sigma3 );
-        
-        opts1 = optimoptions('fmincon');
-        opts1.MaxIterations =  2000;
-        opts1.MaxFunctionEvaluations = 10^6;
-        opts1.Display = 'off';%'off';%'iter-detailed';
-        opts1.OptimalityTolerance = 1e-10;
-        lb = [ones(1,2*provNum), zeros(1,provNum)];
-        ub = [ones(1,2*provNum) * 100, ones(1,provNum) * 1];
-        tic
-        [params1, ~] = fmincon(f1, params_pre, [],[],[],[],lb,ub,[],opts1);
-        toc;
-        %         if i == 1
-        %             [params1, ~] = fmincon(f1, params_pre, [],[],[],[],lb,ub,[],opts1);
-        %         else
-        %             [params1, ~] = fmincon(f1, reshape(param_wHwMwGL_mat(i-1,:,rep),1,3*provNum), ...
-        %                 [],[],[],[],lb,ub,[],opts1);
-        %         end
-        
-        param_wHwMwGL_mat_sigma3(i, :, rep) = params1';
-        
-        R_train = zeros(1, provNum);
-        params1_test = params1;
-        R_test  = zeros(1, provNum);
-        params1_valid = params1;
-        R_valid = zeros(1, provNum);
-        y_reg_train = SEIR_data_gen_test_pred_inf_determ_2(params1, ini, dt, trainDays_end-startDay+1, 1, R_train);
-        y_reg_valid = SEIR_data_gen_test_pred_inf_determ_2(params1_valid, ini, dt, validDays_end-startDay+1, 1, R_valid);
-        y_reg_valid = y_reg_valid(validDays_start:validDays_end,:);
-        y_reg_test  = SEIR_data_gen_test_pred_inf_determ_2(params1_test, ini, dt, testDays_end-startDay+1, 1, R_test);
-        y_reg_test  = y_reg_test(testDays_start:testDays_end,:);
-        %-------------------------
-        trainErr_1 = abs(y_reg_train(:, 1: provNum) - y_true(1: trainDays_end-startDay+1, 1: provNum));
-        trainErr_vec_1 = (sum(trainErr_1))' ./ (y_true(trainDays_end-startDay+1, (3*provNum+1):(4*provNum))  ...
-            -   y_true(1, (3*provNum+1):(4*provNum))   )' ;
-        validErr_1  = abs(y_reg_valid(:, 1: provNum) ...
-            - y_true_valid(validDays_start: validDays_end, 1: provNum));
-        validErr_vec_1 = (sum(validErr_1))' ./ (y_true_valid(validDays_end, (3*provNum+1):(4*provNum))  ...
-            -   y_true_valid(validDays_start, (3*provNum+1):(4*provNum))   )' ;
-        testErr_1  = abs(y_reg_test(:, 1: provNum) ...
-            - y_true_test(testDays_start: testDays_end, 1: provNum));
-        testErr_vec_1 = (sum(testErr_1))' ./ (y_true_test(testDays_end, (3*provNum+1):(4*provNum))  ...
-            -   y_true_test(testDays_start, (3*provNum+1):(4*provNum))   )' ;
-        trainErr_wHwMwGL_mat1_sigma3(i,rep) = sum(trainErr_vec_1);
-        validErr_wHwMwGL_mat1_sigma3(i,rep)  = sum(validErr_vec_1);
-        testErr_wHwMwGL_mat1_sigma3(i,rep)  = sum(testErr_vec_1);
-        %--------------------------
-        trainErr_2  = abs(y_reg_train(:, 1: provNum) ...
-            - y_true(1: trainDays_end-startDay+1, 1: provNum)) ...
-            ./ y_true(1: trainDays_end-startDay+1, 1: provNum);
-        trainErr_vec_2 = (sum(trainErr_2))' / trainDays_end ;
-        validErr_2  = abs(y_reg_valid(:, 1: provNum) ...
-            - y_true_valid(validDays_start: validDays_end, 1: provNum)) ...
-            ./ y_true_valid(validDays_start: validDays_end, 1: provNum);
-        validErr_vec_2 = (sum(validErr_2))' / (validDays_end - validDays_start + 1) ;
-        testErr_2  = abs(y_reg_test(:, 1: provNum) ...
-            - y_true_test(testDays_start: testDays_end, 1: provNum)) ...
-            ./ y_true_test(testDays_start: testDays_end, 1: provNum);
-        testErr_vec_2 = (sum(testErr_2))' / (testDays_end - testDays_start + 1) ;
-        trainErr_wHwMwGL_mat2_sigma3(i,rep) = sum(trainErr_vec_2);
-        validErr_wHwMwGL_mat2_sigma3(i,rep) = sum(validErr_vec_2);
-        testErr_wHwMwGL_mat2_sigma3(i,rep)  = sum(testErr_vec_2);
-        %--------------------------
-        trainErr_3  = ( abs(y_reg_train(:, 1: provNum) ...
-            - y_true(1: trainDays_end-startDay+1, 1: provNum)) ...
-            ./ y_true(1: trainDays_end-startDay+1, 1: provNum) ).^2;
-        trainErr_vec_3 = sqrt((sum(trainErr_3 .* y_true(1: trainDays_end-startDay+1, 1: provNum)...
-            ./ (ones(trainDays_end,1)*(y_true(trainDays_end-startDay+1, (3*provNum+1):(4*provNum))  ...
-            -   y_true(1, (3*provNum+1):(4*provNum)))) ))' ) ;
-        validErr_3  = ( abs(y_reg_valid(:, 1: provNum) ...
-            - y_true_valid(validDays_start: validDays_end, 1: provNum)) ...
-            ./ y_true_valid(validDays_start: validDays_end, 1: provNum) ).^2;
-        validErr_vec_3 = sqrt((sum(validErr_3 .* y_true_valid(validDays_start: validDays_end, 1: provNum)...
-            ./ (ones(validDays_end-validDays_start+1,1)*(y_true_valid(validDays_end, (3*provNum+1):(4*provNum))  ...
-            -   y_true_valid(validDays_start, (3*provNum+1):(4*provNum)))) ))' ) ;
-        testErr_3  = ( abs(y_reg_test(:, 1: provNum) ...
-            - y_true_test(testDays_start: testDays_end, 1: provNum)) ...
-            ./ y_true_test(testDays_start: testDays_end, 1: provNum) ).^2;
-        testErr_vec_3 = sqrt((sum(testErr_3 .* y_true_test(testDays_start: testDays_end, 1: provNum)...
-            ./ (ones(testDays_end-testDays_start+1,1)*(y_true_test(testDays_end, (3*provNum+1):(4*provNum))  ...
-            -   y_true_test(testDays_start, (3*provNum+1):(4*provNum)))) ))' ) ;
-        trainErr_wHwMwGL_mat3_sigma3(i,rep) = sum(trainErr_vec_3);
-        validErr_wHwMwGL_mat3_sigma3(i,rep) = sum(validErr_vec_3);
-        testErr_wHwMwGL_mat3_sigma3(i,rep)  = sum(testErr_vec_3);
-        %--------------------------
-        trainErr_vec_4 = sqrt( (sum(trainErr_3))' / (trainDays_end-startDay+1) );
-        validErr_vec_4 = sqrt( (sum(validErr_3))' / (validDays_end - validDays_start+1) );
-        testErr_vec_4 = sqrt( (sum(testErr_3))' / (testDays_end-testDays_start+1) );
-        trainErr_wHwMwGL_mat4_sigma3(i,rep) = sum(trainErr_vec_4);
-        validErr_wHwMwGL_mat4_sigma3(i,rep) = sum(validErr_vec_4);
-        testErr_wHwMwGL_mat4_sigma3(i,rep) = sum(testErr_vec_4);
-        
-    end
-    
-    fprintf('\n')
-    
-    
-end
-
-
-
-
-%%
-
-trainDays_end
-validDays_end
-totDays
-
-fprintf('relative error with weighted average, sigma_2 = 10^%.1f\n\n', log10(sigma3));
-
-fprintf('\n');
-for i = 1: length(muvec)
-    fprintf('w/ H, w/ M, w/ GL, mu = 10^%.1f, trainErr: mean %.4f, std %6.4f, testErr: mean %6.4f, std %.4f \n', log10(muvec(i)), mean(trainErr_wHwMwGL_mat1_sigma3(i,:)/provNum),...
-        std(trainErr_wHwMwGL_mat1_sigma3(i,:)/provNum),  mean(testErr_wHwMwGL_mat1_sigma3(i,:)/provNum), std(testErr_wHwMwGL_mat1_sigma3(i,:)/provNum));
-end
-
-%%
-
-fprintf('relative error with equal weights \n\n');
-
-fprintf('\n');
-for i = 1: length(muvec)
-    %fprintf('mu0 = %6.4f: \n\n', mu0vec(i));
-    %     for j = 1: length(mu1vec)
-    %         fprintf('w/ H, w/ M, w/ GL, mu1 = %6.4f, trainErr: mean %6.4f, std % 6.4f, testErr: mean %6.4f, std % 6.4f \n', mu1vec(j), mean(trainErr_wHwMwGL_mat(i,j,:)),...
-    %             std(trainErr_wHwMwGL_mat(i,j,:)),  mean(testErr_wHwMwGL_mat(i,j,:)), std(testErr_wHwMwGL_mat(i,j,:)));
-    %     end
-    
-    fprintf('w/ H, w/ M, w/ GL, mu1 = %6.4f, trainErr: mean %6.4f, std % 6.4f, testErr: mean %6.4f, std % 6.4f \n', muvec(i), mean(trainErr_wHwMwGL_mat2_sigma3(i,:)/provNum),...
-        std(trainErr_wHwMwGL_mat2_sigma3(i,:)/provNum),  mean(testErr_wHwMwGL_mat2_sigma3(i,:)/provNum), std(testErr_wHwMwGL_mat2_sigma3(i,:)/provNum));
-    
-end
-
-%%
-
-fprintf('\nrelative MSE with weighted average\n\n');
-
-fprintf('\n');
-for i = 1: length(muvec)
-    %fprintf('mu0 = %6.4f: \n\n', mu0vec(i));
-    %     for j = 1: length(mu1vec)
-    %         fprintf('w/ H, w/ M, w/ GL, mu1 = %6.4f, trainErr: mean %6.4f, std % 6.4f, testErr: mean %6.4f, std % 6.4f \n', mu1vec(j), mean(trainErr_wHwMwGL_mat(i,j,:)),...
-    %             std(trainErr_wHwMwGL_mat(i,j,:)),  mean(testErr_wHwMwGL_mat(i,j,:)), std(testErr_wHwMwGL_mat(i,j,:)));
-    %     end
-    
-    fprintf('w/ H, w/ M, w/ GL, mu1 = 10^%.1f, trainErr: mean %6.4f, std % 6.4f, testErr: mean %6.4f, std % 6.4f \n', log10(muvec(i)), mean(trainErr_wHwMwGL_mat3_sigma3(i,:)/provNum),...
-        std(trainErr_wHwMwGL_mat3_sigma3(i,:)/provNum),  mean(testErr_wHwMwGL_mat3_sigma3(i,:)/provNum), std(testErr_wHwMwGL_mat3_sigma3(i,:)/provNum));
-    
-end
-
-%%
-fprintf('\nrelative MSE with simple average\n\n');
-
-fprintf('\n');
-for i = 1: length(muvec)
-    %fprintf('mu0 = %6.4f: \n\n', mu0vec(i));
-    %     for j = 1: length(mu1vec)
-    %         fprintf('w/ H, w/ M, w/ GL, mu1 = %6.4f, trainErr: mean %6.4f, std % 6.4f, testErr: mean %6.4f, std % 6.4f \n', mu1vec(j), mean(trainErr_wHwMwGL_mat(i,j,:)),...
-    %             std(trainErr_wHwMwGL_mat(i,j,:)),  mean(testErr_wHwMwGL_mat(i,j,:)), std(testErr_wHwMwGL_mat(i,j,:)));
-    %     end
-    
-    fprintf('w/ H, w/ M, w/ GL, mu1 = %6.4f, trainErr: mean %6.4f, std % 6.4f, testErr: mean %6.4f, std % 6.4f \n', muvec(i), mean(trainErr_wHwMwGL_mat4_sigma3(i,:)/provNum),...
-        std(trainErr_wHwMwGL_mat4_sigma3(i,:)/provNum),  mean(testErr_wHwMwGL_mat4_sigma3(i,:)/provNum), std(testErr_wHwMwGL_mat4_sigma3(i,:)/provNum));
-    
-end
-
-
-return
-
-
-%%
-
-
-fprintf('estimated lambda \n\n');
-
-fprintf('\n');
-for i = 1: length(muvec)
-    %fprintf('mu0 = %6.4f: \n\n', mu0vec(i));
-    %     for j = 1: length(mu1vec)
-    %         fprintf('w/ H, w/ M, w/ GL, mu1 = %6.4f, trainErr: mean %6.4f, std % 6.4f, testErr: mean %6.4f, std % 6.4f \n', mu1vec(j), mean(trainErr_wHwMwGL_mat(i,j,:)),...
-    %             std(trainErr_wHwMwGL_mat(i,j,:)),  mean(testErr_wHwMwGL_mat(i,j,:)), std(testErr_wHwMwGL_mat(i,j,:)));
-    %     end
-    
-    fprintf('w/ H, w/ M, wGL, mu1 10^%.1f, lambda1: mean %6.4f, std % 6.4f, lambda2: mean %6.4f, std % 6.4f \n', log10(muvec(i)), ...
-        mean(reshape(param_wHwMwGL_mat_sigma3(i,9,:), numrep,1)), std(reshape(param_wHwMwGL_mat_sigma3(i,9,:), numrep,1)), ...
-        mean(reshape(param_wHwMwGL_mat_sigma3(i,10,:), numrep,1)), std(reshape(param_wHwMwGL_mat_sigma3(i,10,:), numrep,1)));
-    fprintf('                            lambda3: mean %6.4f, std % 6.4f, lambda4: mean %6.4f, std % 6.4f \n', ...
-        mean(reshape(param_wHwMwGL_mat_sigma3(i,11,:), numrep,1)), std(reshape(param_wHwMwGL_mat_sigma3(i,11,:), numrep,1)), ...
-        mean(reshape(param_wHwMwGL_mat_sigma3(i,12,:), numrep,1)), std(reshape(param_wHwMwGL_mat_sigma3(i,12,:), numrep,1)));
-    
-    
-    
-end
-
-
-
 
 

@@ -264,9 +264,9 @@ for rep = 1: numrep
     ini.traMat = traMat;
     %y_true  = max(SEIR_data_gen_test_pred_inf_random_2(param, ini, totDays, startDay),0.01);
     
-    y_true_test  = max(SEIR_data_gen_test_pred_inf_random_dt_2(param_true, ini, totDays, startDay, dt),1);
-    y_true_valid = max(SEIR_data_gen_test_pred_inf_random_dt_2(param_true, ini, totDays, startDay, dt),1);%y_true;%max(SEIR_data_gen_test_pred_inf_random_dt_2(param, ini, totDays, startDay, dt),1);
-    y_true       = max(SEIR_data_gen_test_pred_inf_random_dt_2(param_true, ini, totDays, startDay, dt),1);
+    y_true_test  = max(simu_data_generate_random_approx(param_true, ini, totDays, startDay, dt),1);
+    y_true_valid = max(simu_data_generate_random_approx(param_true, ini, totDays, startDay, dt),1);%y_true;%max(SEIR_data_gen_test_pred_inf_random_dt_2(param, ini, totDays, startDay, dt),1);
+    y_true       = max(simu_data_generate_random_approx(param_true, ini, totDays, startDay, dt),1);
     
     y_obs   = y_true(:, 1: (5*provNum)); % deltaC, deltaCR,  E, I, R
     traj_obs_mat(:, :, rep) = y_obs;
@@ -279,7 +279,7 @@ for rep = 1: numrep
     fprintf('wo Hetero, wo Migrat\n');
     ini.traMat = zeros(provNum);
     
-    f1 = @(x)SEIR_fminunc_test_pred_inf_wo_h_2(x, y_obs, ini, 'pois', dt, trainDays_end, startDay );
+    f1 = @(x)fmin_simu_data_without_hetero(x, y_obs, ini, 'pois', dt, trainDays_end, startDay );
     opts1 = optimoptions('fmincon');
     opts1.MaxIterations =  2000;
     opts1.MaxFunctionEvaluations = 10^6;
@@ -299,10 +299,10 @@ for rep = 1: numrep
     R_test  = zeros(1, provNum);
     params1_valid = params1;
     R_valid = zeros(1, provNum);
-    y_reg_train = SEIR_data_gen_test_pred_inf_determ_wo_h_2(params1, ini, dt, trainDays_end-startDay+1, 1, R_train);
-    y_reg_valid = SEIR_data_gen_test_pred_inf_determ_wo_h_2(params1_valid, ini, dt, validDays_end-startDay+1, 1, R_valid);
+    y_reg_train = simu_data_generate_determ_without_hetero(params1, ini, dt, trainDays_end-startDay+1, 1, R_train);
+    y_reg_valid = simu_data_generate_determ_without_hetero(params1_valid, ini, dt, validDays_end-startDay+1, 1, R_valid);
     y_reg_valid = y_reg_valid(validDays_start:validDays_end,:);
-    y_reg_test  = SEIR_data_gen_test_pred_inf_determ_wo_h_2(params1_test, ini, dt, testDays_end-startDay+1, 1, R_test);
+    y_reg_test  = simu_data_generate_determ_without_hetero(params1_test, ini, dt, testDays_end-startDay+1, 1, R_test);
     y_reg_test  = y_reg_test(testDays_start:testDays_end,:);
     traj_train_woHwoM_mat(:, :, rep) = y_reg_train(:, 1: provNum);
     traj_valid_woHwoM_mat(:, :, rep) = y_reg_valid(:, 1: provNum);
@@ -374,7 +374,7 @@ for rep = 1: numrep
     fprintf('wo Hetero, w/ Migrat\n');
     ini.traMat = traMat;
     
-    f1 = @(x)SEIR_fminunc_test_pred_inf_wo_h_2(x, y_obs, ini, 'pois', dt, trainDays_end, startDay );
+    f1 = @(x)fmin_simu_data_without_hetero(x, y_obs, ini, 'pois', dt, trainDays_end, startDay );
     opts1 = optimoptions('fmincon');
     opts1.MaxIterations =  2000;
     opts1.MaxFunctionEvaluations = 10^6;
@@ -393,10 +393,10 @@ for rep = 1: numrep
     R_test  = zeros(1, provNum);
     params1_valid = params1;
     R_valid = zeros(1, provNum);
-    y_reg_train = SEIR_data_gen_test_pred_inf_determ_wo_h_2(params1, ini, dt, trainDays_end-startDay+1, 1, R_train);
-    y_reg_valid = SEIR_data_gen_test_pred_inf_determ_wo_h_2(params1_valid, ini, dt, validDays_end-startDay+1, 1, R_valid);
+    y_reg_train = simu_data_generate_determ_without_hetero(params1, ini, dt, trainDays_end-startDay+1, 1, R_train);
+    y_reg_valid = simu_data_generate_determ_without_hetero(params1_valid, ini, dt, validDays_end-startDay+1, 1, R_valid);
     y_reg_valid = y_reg_valid(validDays_start:validDays_end,:);
-    y_reg_test  = SEIR_data_gen_test_pred_inf_determ_wo_h_2(params1_test, ini, dt, testDays_end-startDay+1, 1, R_test);
+    y_reg_test  = simu_data_generate_determ_without_hetero(params1_test, ini, dt, testDays_end-startDay+1, 1, R_test);
     y_reg_test  = y_reg_test(testDays_start:testDays_end,:);
     traj_train_woHwM_mat(:, :, rep) = y_reg_train(:, 1: provNum);
     traj_valid_woHwM_mat(:, :, rep) = y_reg_valid(:, 1: provNum);
@@ -466,9 +466,9 @@ for rep = 1: numrep
     %-----------------------------------------------------------------------------------------------------
     % w/ Hetero, wo Migrat
     fprintf('w/ Hetero, wo Migrat\n');
-    ini.traMat = zeros(provNum); mu0 = 0; mu1 = 0;
+    ini.traMat = zeros(provNum); 
     
-    f1 = @(x)SEIR_fminunc_test_pred_inf_multi_2(x, y_obs, ini, 'pois', mu0, mu1, dt, trainDays_end, startDay, 0 );
+    f1 = @(x)fmin_simu_data(x, y_obs, ini, 'pois', 0, beta, dt, trainDays_end, startDay, 0 );
     opts1 = optimoptions('fmincon');
     opts1.MaxIterations =  2000;
     opts1.MaxFunctionEvaluations = 10^6;
@@ -486,10 +486,10 @@ for rep = 1: numrep
     R_test  = zeros(1, provNum);
     params1_valid = params1;
     R_valid = zeros(1, provNum);
-    y_reg_train = SEIR_data_gen_test_pred_inf_determ_2(params1, ini, dt, trainDays_end-startDay+1, 1, R_train);
-    y_reg_valid = SEIR_data_gen_test_pred_inf_determ_2(params1_valid, ini, dt, validDays_end-startDay+1, 1, R_valid);
+    y_reg_train = simu_data_generate_determ(params1, ini, dt, trainDays_end-startDay+1, 1, R_train);
+    y_reg_valid = simu_data_generate_determ(params1_valid, ini, dt, validDays_end-startDay+1, 1, R_valid);
     y_reg_valid = y_reg_valid(validDays_start:validDays_end,:);
-    y_reg_test  = SEIR_data_gen_test_pred_inf_determ_2(params1_test, ini, dt, testDays_end-startDay+1, 1, R_test);
+    y_reg_test  = simu_data_generate_determ(params1_test, ini, dt, testDays_end-startDay+1, 1, R_test);
     y_reg_test  = y_reg_test(testDays_start:testDays_end,:);
     traj_train_wHwoM_mat(:, :, rep) = y_reg_train(:, 1: provNum);
     traj_valid_wHwoM_mat(:, :, rep) = y_reg_valid(:, 1: provNum);
@@ -559,9 +559,9 @@ for rep = 1: numrep
     %-----------------------------------------------------------------------------------------------------
     % w/ Hetero, w/ Migrat, no GL
     fprintf('w/ Hetero, w/ Migrat, no GL\n');
-    ini.traMat = traMat; mu0 = 0; mu1 = 0;
+    ini.traMat = traMat; 
     
-    f1 = @(x)SEIR_fminunc_test_pred_inf_multi_2(x, y_obs, ini, 'pois', mu0, mu1, dt, trainDays_end, startDay, 0);
+    f1 = @(x)fmin_simu_data(x, y_obs, ini, 'pois', 0, beta, dt, trainDays_end, startDay, 0);
     opts1 = optimoptions('fmincon');
     opts1.MaxIterations =  2000;
     opts1.MaxFunctionEvaluations = 10^6;
@@ -578,10 +578,10 @@ for rep = 1: numrep
     R_test  = zeros(1, provNum);
     params1_valid = params1;
     R_valid = zeros(1, provNum);
-    y_reg_train = SEIR_data_gen_test_pred_inf_determ_2(params1, ini, dt, trainDays_end-startDay+1, 1, R_train);
-    y_reg_valid = SEIR_data_gen_test_pred_inf_determ_2(params1_valid, ini, dt, validDays_end-startDay+1, 1, R_valid);
+    y_reg_train = simu_data_generate_determ(params1, ini, dt, trainDays_end-startDay+1, 1, R_train);
+    y_reg_valid = simu_data_generate_determ(params1_valid, ini, dt, validDays_end-startDay+1, 1, R_valid);
     y_reg_valid = y_reg_valid(validDays_start:validDays_end,:);
-    y_reg_test  = SEIR_data_gen_test_pred_inf_determ_2(params1_test, ini, dt, testDays_end-startDay+1, 1, R_test);
+    y_reg_test  = simu_data_generate_determ(params1_test, ini, dt, testDays_end-startDay+1, 1, R_test);
     y_reg_test  = y_reg_test(testDays_start:testDays_end,:);
     traj_train_wHwM_mat(:, :, rep) = y_reg_train(:, 1: provNum);
     traj_valid_wHwM_mat(:, :, rep) = y_reg_valid(:, 1: provNum);
@@ -658,13 +658,9 @@ for rep = 1: numrep
         %for j = 1: length(mu1vec)
         fprintf('the %d-th mu1\n', i);
         
-        %         mu = muvec(i); %mu1vec(j);
-        %         f1 = @(x)SEIR_fminunc_test_pred_inf_multi_3(x, y_obs, ini, 'pois', mu, beta, dt, validDays, startDay, sigma );
-        
-        mu1 = muvec(i)/5000; %mu1vec(j);
-        mu0 = mu1*beta;%mu1/10;
-        f1 = @(x)SEIR_fminunc_test_pred_inf_multi_2(x, y_obs, ini, 'pois', mu0, mu1, dt, trainDays_end, startDay, sigma );
-        
+        mu = muvec(i); %mu1vec(j);
+        f1 = @(x)fmin_simu_data(x, y_obs, ini, 'pois', mu, beta, dt, trainDays_end, startDay, sigma );
+                
         opts1 = optimoptions('fmincon');
         opts1.MaxIterations =  2000;
         opts1.MaxFunctionEvaluations = 10^6;
@@ -673,12 +669,6 @@ for rep = 1: numrep
         lb = [ones(1,2*provNum), zeros(1,provNum)];
         ub = [ones(1,2*provNum) * 100, ones(1,provNum) * 1];
         [params1, ~] = fmincon(f1, params_pre, [],[],[],[],lb,ub,[],opts1);
-        %         if i == 1
-        %             [params1, ~] = fmincon(f1, params_pre, [],[],[],[],lb,ub,[],opts1);
-        %         else
-        %             [params1, ~] = fmincon(f1, reshape(param_wHwMwGL_mat(i-1,:,rep),1,3*provNum), ...
-        %                 [],[],[],[],lb,ub,[],opts1);
-        %         end
         
         param_wHwMwGL_mat(i, :, rep) = params1';
         
@@ -687,10 +677,10 @@ for rep = 1: numrep
         R_test  = zeros(1, provNum);
         params1_valid = params1;
         R_valid = zeros(1, provNum);
-        y_reg_train = SEIR_data_gen_test_pred_inf_determ_2(params1, ini, dt, trainDays_end-startDay+1, 1, R_train);
-        y_reg_valid = SEIR_data_gen_test_pred_inf_determ_2(params1_valid, ini, dt, validDays_end-startDay+1, 1, R_valid);
+        y_reg_train = simu_data_generate_determ(params1, ini, dt, trainDays_end-startDay+1, 1, R_train);
+        y_reg_valid = simu_data_generate_determ(params1_valid, ini, dt, validDays_end-startDay+1, 1, R_valid);
         y_reg_valid = y_reg_valid(validDays_start:validDays_end,:);
-        y_reg_test  = SEIR_data_gen_test_pred_inf_determ_2(params1_test, ini, dt, testDays_end-startDay+1, 1, R_test);
+        y_reg_test  = simu_data_generate_determ(params1_test, ini, dt, testDays_end-startDay+1, 1, R_test);
         y_reg_test  = y_reg_test(testDays_start:testDays_end,:);
         %-------------------------
         trainErr_1 = abs(y_reg_train(:, 1: provNum) - y_true(1: trainDays_end-startDay+1, 1: provNum));

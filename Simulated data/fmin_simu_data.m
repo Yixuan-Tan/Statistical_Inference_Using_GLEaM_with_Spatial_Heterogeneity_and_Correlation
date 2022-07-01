@@ -73,7 +73,11 @@ lambdavec = x((2*n+1): end); % before
 gamma  = ini.gamma; % value
 delta  = ini.delta; % value
 %--------------------------------------------------------
-W_reg  = traMat / max(traMat,[],'all');
+if max(traMat,[],'all') > 0
+    W_reg  = traMat / max(traMat,[],'all');
+elseif max(traMat,[],'all') == 0
+    W_reg  = traMat;
+end
 mu1 = mu;
 mu0 = mu*beta;
 for i = 1: partNum

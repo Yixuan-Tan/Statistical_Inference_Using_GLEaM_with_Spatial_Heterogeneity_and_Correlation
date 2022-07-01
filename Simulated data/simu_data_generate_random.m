@@ -1,4 +1,4 @@
-function [yC, yCR, yE, yH, yR] = simu_data_generate(param, ini, totday, startday)
+function y_return = simu_data_generate_random(param, ini, totday, startday)
 
 % function to simulate the epidemic data
 % the generation of the data follow the exactly same probability law as the
@@ -151,3 +151,5 @@ yE  = yE(startday: end, :);
 yCR = yCR(startday: end, :);
 yH  = yH(startday: end, :);
 yR  = yR(startday: end, :);
+
+y_return = [yC, yCR, yE, yH, yR];
