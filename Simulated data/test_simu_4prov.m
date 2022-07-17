@@ -751,114 +751,84 @@ testErr_wHwMwGL_mat4  = testErr_wHwMwGL_mat4/provNum;
 
 
 
-%%
+%% plot validation & testing errors
 
-muind_plot = 13;
+[~,muind_plot] = min(mean(validErr_wHwMwGL_mat1,2))
 
 figure(5), clf;
 subplot(1,2,1);
 hold on;
-plot(log10(muvec), mean(validErr_wHwMwGL_mat1,2), 'x-', 'LineWidth', 2);
+plot(log10(muvec), mean(validErr_wHwMwGL_mat1,2), 'x-', 'LineWidth', 2, 'MarkerSize', 12);
+plot(log10(muvec), mean(testErr_wHwMwGL_mat1,2), '--', 'LineWidth', 2, 'Marker', 'o', 'MarkerSize', 12);
 plot(log10(muvec(muind_plot)), mean(validErr_wHwMwGL_mat1(muind_plot,:),2), 'p', 'MarkerSize', 24, 'MarkerFaceColor', '#EDB120', 'MarkerEdgeColor', '#EDB120');
-yline(mean(validErr_wHwM_mat1), '-', '$\mu=0$', 'LineWidth', 2, 'FontSize', 30, 'LabelHorizontalAlignment', 'left', 'Interpreter', 'latex');
+yline(mean(validErr_wHwM_mat1), '-', '$\mu=0$', 'LineWidth', 2, 'FontSize', 30, 'LabelHorizontalAlignment', 'left', 'Interpreter', 'latex', 'color', '#0072BD');
+yline(mean(testErr_wHwM_mat1), '--', '$\mu=0$', 'LineWidth', 2, 'FontSize', 30, 'LabelHorizontalAlignment', 'left', 'Interpreter', 'latex', 'color', '#D95319');
 xlabel('$\log_{10} \mu$', 'Interpreter', 'latex');
-ylabel('validation error', 'Interpreter', 'latex');
+ylabel('prediction error', 'Interpreter', 'latex');
 set(gca, 'FontSize', 36);
-title('$\textnormal{MAE}^{[\rm Val]}_{(w)}$', 'FontSize', 36, 'Interpreter', 'latex');
+legend('validation error $\textnormal{MAE}^{[\rm Val]}_{(w)}$', ...
+    'testing error $\textnormal{MAE}^{[\rm Te]}_{(w)}$', 'FontSize', 32, 'Interpreter', 'latex',...
+    'location', 'best')
+title('$\textnormal{MAE}_{(w)}$', 'FontSize', 36, 'Interpreter', 'latex');
 grid on;
+ylim([0.32 0.43])
 subplot(1,2,2);
 hold on;
-plot(log10(muvec), mean(validErr_wHwMwGL_mat3,2), 'x-', 'LineWidth', 2);
+plot(log10(muvec), mean(validErr_wHwMwGL_mat3,2), 'x-', 'LineWidth', 2, 'MarkerSize', 12);
+plot(log10(muvec), mean(testErr_wHwMwGL_mat1,2), '--', 'LineWidth', 2, 'Marker', 'o', 'MarkerSize', 12);
 plot(log10(muvec(muind_plot)), mean(validErr_wHwMwGL_mat3(muind_plot,:),2), 'p', 'MarkerSize', 24, 'MarkerFaceColor', '#EDB120', 'MarkerEdgeColor', '#EDB120');
-yline(mean(validErr_wHwM_mat3), '-', '$\mu=0$', 'LineWidth', 2, 'FontSize', 30, 'LabelHorizontalAlignment', 'left', 'Interpreter', 'latex');
+yline(mean(validErr_wHwM_mat3), '-', '$\mu=0$', 'LineWidth', 2, 'FontSize', 30, 'LabelHorizontalAlignment', 'left', 'Interpreter', 'latex', 'color', '#0072BD');
+yline(mean(testErr_wHwM_mat1), '--', '$\mu=0$', 'LineWidth', 2, 'FontSize', 30, 'LabelHorizontalAlignment', 'left', 'Interpreter', 'latex', 'color', '#D95319');
 xlabel('$\log_{10} \mu$', 'Interpreter', 'latex');
-ylabel('validation error', 'Interpreter', 'latex');
+ylabel('prediction error', 'Interpreter', 'latex');
 set(gca, 'FontSize', 36);
-title('$\textnormal{MSE}^{[\rm Val]}_{(w)}$', 'FontSize', 36, 'Interpreter', 'latex');
+legend('validation error $\textnormal{MSE}^{[\rm Val]}_{(w)}$', ...
+    'testing error $\textnormal{MSE}^{[\rm Te]}_{(w)}$', 'FontSize', 32, 'Interpreter', 'latex',...
+    'location', 'best')
+title('$\textnormal{MSE}_{(w)}$', 'FontSize', 36, 'Interpreter', 'latex');
 grid on;
+ylim([0.32 0.43])
 
-sgtitle({'Mean of total weighted relative validation errors over 100 replicas', '(simulated data with 4 provinces)'}, 'Fontsize', 42, 'Interpreter', 'latex');
+sgtitle({'Mean of total weighted relative prediction errors over 100 replicas', '(simulated data with 4 provinces)'}, 'Fontsize', 42, 'Interpreter', 'latex');
+
+
 
 figure(6), clf;
 subplot(1,2,1);
 hold on;
-plot(log10(muvec), mean(testErr_wHwMwGL_mat1,2), 'x-', 'LineWidth', 2);
-plot(log10(muvec(muind_plot)), mean(testErr_wHwMwGL_mat1(muind_plot,:),2), 'p', 'MarkerSize', 24, 'MarkerFaceColor', '#EDB120', 'MarkerEdgeColor', '#EDB120');
-yline(mean(testErr_wHwM_mat1), '-', '$\mu=0$', 'LineWidth', 2, 'FontSize', 30, 'LabelHorizontalAlignment', 'left', 'Interpreter', 'latex');
-xlabel('$\log_{10} \mu$', 'Interpreter', 'latex');
-ylabel('testing error', 'Interpreter', 'latex');
-set(gca, 'FontSize', 36);
-title('$\textnormal{MAE}^{[\rm Te]}_{(w)}$', 'FontSize', 36, 'Interpreter', 'latex');
-grid on;
-subplot(1,2,2);
-hold on;
-plot(log10(muvec), mean(testErr_wHwMwGL_mat3,2), 'x-', 'LineWidth', 2);
-plot(log10(muvec(muind_plot)), mean(testErr_wHwMwGL_mat3(muind_plot,:),2), 'p', 'MarkerSize', 24, 'MarkerFaceColor', '#EDB120', 'MarkerEdgeColor', '#EDB120');
-yline(mean(testErr_wHwM_mat3), '-', '$\mu=0$', 'LineWidth', 2, 'FontSize', 30, 'LabelHorizontalAlignment', 'left', 'Interpreter', 'latex');
-xlabel('$\log_{10} \mu$', 'Interpreter', 'latex');
-ylabel('testing error', 'Interpreter', 'latex');
-set(gca, 'FontSize', 36);
-title('$\textnormal{MSE}^{[\rm Te]}_{(w)}$', 'FontSize', 36, 'Interpreter', 'latex');
-grid on;
-
-sgtitle({'Mean of total weighted relative testing errors over 100 replicas', '(simulated data with 4 provinces)'}, 'Fontsize', 42, 'Interpreter', 'latex');
-
-
-
-figure(7), clf;
-subplot(1,2,1);
-hold on;
-plot(log10(muvec), mean(validErr_wHwMwGL_mat2,2), 'x-', 'LineWidth', 2);
+plot(log10(muvec), mean(validErr_wHwMwGL_mat2,2), 'x-', 'LineWidth', 2, 'MarkerSize', 12);
+plot(log10(muvec), mean(testErr_wHwMwGL_mat2,2), '--', 'LineWidth', 2, 'Marker', 'o', 'MarkerSize', 12);
 plot(log10(muvec(muind_plot)), mean(validErr_wHwMwGL_mat2(muind_plot,:),2), 'p', 'MarkerSize', 24, 'MarkerFaceColor', '#EDB120', 'MarkerEdgeColor', '#EDB120');
-yline(mean(validErr_wHwM_mat2), '-', '$\mu=0$', 'LineWidth', 2, 'FontSize', 30, 'LabelHorizontalAlignment', 'left', 'Interpreter', 'latex');
+yline(mean(validErr_wHwM_mat2), '-', '$\mu=0$', 'LineWidth', 2, 'FontSize', 30, 'LabelHorizontalAlignment', 'left', 'Interpreter', 'latex', 'color', '#0072BD');
+yline(mean(testErr_wHwM_mat2), '--', '$\mu=0$', 'LineWidth', 2, 'FontSize', 30, 'LabelHorizontalAlignment', 'left', 'Interpreter', 'latex', 'color', '#D95319');
 xlabel('$\log_{10} \mu$', 'Interpreter', 'latex');
-ylabel('validation error', 'Interpreter', 'latex');
+ylabel('prediction error', 'Interpreter', 'latex');
 set(gca, 'FontSize', 36);
-title('$\textnormal{MAE}^{[\rm Val]}_{(s)}$', 'FontSize', 36, 'Interpreter', 'latex');
+legend('validation error $\textnormal{MAE}^{[\rm Val]}_{(s)}$', ...
+    'testing error $\textnormal{MAE}^{[\rm Te]}_{(s)}$', 'FontSize', 32, 'Interpreter', 'latex',...
+    'location', 'best')
+title('$\textnormal{MAE}_{(s)}$', 'FontSize', 36, 'Interpreter', 'latex');
 grid on;
 subplot(1,2,2);
 hold on;
-plot(log10(muvec), mean(validErr_wHwMwGL_mat4,2), 'x-', 'LineWidth', 2);
+plot(log10(muvec), mean(validErr_wHwMwGL_mat4,2), 'x-', 'LineWidth', 2, 'MarkerSize', 12);
+plot(log10(muvec), mean(testErr_wHwMwGL_mat4,2), '--', 'LineWidth', 2, 'Marker', 'o', 'MarkerSize', 12);
 plot(log10(muvec(muind_plot)), mean(validErr_wHwMwGL_mat4(muind_plot,:),2), 'p', 'MarkerSize', 24, 'MarkerFaceColor', '#EDB120', 'MarkerEdgeColor', '#EDB120');
-yline(mean(validErr_wHwM_mat4), '-', '$\mu=0$', 'LineWidth', 2, 'FontSize', 30, 'LabelHorizontalAlignment', 'left', 'Interpreter', 'latex');
+yline(mean(validErr_wHwM_mat4), '-', '$\mu=0$', 'LineWidth', 2, 'FontSize', 30, 'LabelHorizontalAlignment', 'left', 'Interpreter', 'latex', 'color', '#0072BD');
+yline(mean(testErr_wHwM_mat4), '--', '$\mu=0$', 'LineWidth', 2, 'FontSize', 30, 'LabelHorizontalAlignment', 'left', 'Interpreter', 'latex', 'color', '#D95319');
 xlabel('$\log_{10} \mu$', 'Interpreter', 'latex');
-ylabel('testing error', 'Interpreter', 'latex');
+ylabel('prediction error', 'Interpreter', 'latex');
 set(gca, 'FontSize', 36);
-title('$\textnormal{MSE}^{[\rm Val]}_{(s)}$', 'FontSize', 36, 'Interpreter', 'latex');
+legend('validation error $\textnormal{MSE}^{[\rm Val]}_{(s)}$', ...
+    'testing error $\textnormal{MSE}^{[\rm Te]}_{(s)}$', 'FontSize', 32, 'Interpreter', 'latex',...
+    'location', 'best')
+title('$\textnormal{MSE}_{(s)}$', 'FontSize', 36, 'Interpreter', 'latex');
 grid on;
 
-sgtitle({'Mean of total simple averaged relative validation errors over 100 replicas', '(simulated data with 4 provinces)'}, 'Fontsize', 42, 'Interpreter', 'latex');
-
-figure(8), clf;
-subplot(1,2,1);
-hold on;
-plot(log10(muvec), mean(testErr_wHwMwGL_mat2,2), 'x-', 'LineWidth', 2);
-plot(log10(muvec(muind_plot)), mean(testErr_wHwMwGL_mat2(muind_plot,:),2), 'p', 'MarkerSize', 24, 'MarkerFaceColor', '#EDB120', 'MarkerEdgeColor', '#EDB120');
-yline(mean(testErr_wHwM_mat2), '-', '$\mu=0$', 'LineWidth', 2, 'FontSize', 30, 'LabelHorizontalAlignment', 'left', 'Interpreter', 'latex');
-xlabel('$\log_{10} \mu$', 'Interpreter', 'latex');
-ylabel('testing error', 'Interpreter', 'latex');
-set(gca, 'FontSize', 36);
-% ylim([0
-title('$\textnormal{MAE}^{[\rm Te]}_{(s)}$', 'FontSize', 36, 'Interpreter', 'latex');
-grid on;
-subplot(1,2,2);
-hold on;
-plot(log10(muvec), mean(testErr_wHwMwGL_mat4,2), 'x-', 'LineWidth', 2);
-plot(log10(muvec(muind_plot)), mean(testErr_wHwMwGL_mat4(muind_plot,:),2), 'p', 'MarkerSize', 24, 'MarkerFaceColor', '#EDB120', 'MarkerEdgeColor', '#EDB120');
-yline(mean(testErr_wHwM_mat4), '-', '$\mu=0$', 'LineWidth', 2, 'FontSize', 30, 'LabelHorizontalAlignment', 'left', 'Interpreter', 'latex');
-xlabel('$\log_{10} \mu$', 'Interpreter', 'latex');
-ylabel('testing error', 'Interpreter', 'latex');
-set(gca, 'FontSize', 36);
-title('$\textnormal{MSE}^{[\rm Te]}_{(s)}$', 'FontSize', 36, 'Interpreter', 'latex');
-grid on;
-
-sgtitle({'Mean of total simply averaged relative testing errors over 100 replicas', '(simulated data with 4 provinces)'}, 'Fontsize', 42, 'Interpreter', 'latex');
+sgtitle({'Mean of total simply averaged relative prediction errors over 100 replicas', '(simulated data with 4 provinces)'}, 'Fontsize', 42, 'Interpreter', 'latex');
 
 
-% return;
-
-
-%%
+%% print errors
 
 trainDays_end
 validDays_end
@@ -958,7 +928,7 @@ end
 return
 
 
-%%
+%% print estimated parameters
 
 
 fprintf('estimated lambda \n\n');
@@ -993,7 +963,7 @@ for i = 1: length(muvec)
 end
 
 
-%%
+%% plot trajectory prediction results
 
 
 rep = 50;
