@@ -1,0 +1,2 @@
+- **The results in Section 3.2 of the paper can be obtained by running `test_simu_4prov.m`.**
+- **The results in Section 3.3 of the paper can be obtained by running `test_simu_30prov.m`.**
