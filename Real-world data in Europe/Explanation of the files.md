@@ -1,0 +1,4 @@
+- Files `Confirmed.xlsx`, `Deaths.xlsx`, `Recovered.xlsx` store the accumulated confirmed/decreased/recovered cases in the selected European countries respectively, and are downloaded from [COVID-19 Data Repository by the Center for Systems Science and Engineering (CSSE) at Johns Hopkins University](https://github.com/CSSEGISandData/COVID-19).
+- `data_preprocess.m` read the files `Confirmed.xlsx`, `Deaths.xlsx`, `Recovered.xlsx`, convert the data to `.mat` form and store and accumulated confirmed/removed cases in the file `data_preprocessed.mat`.
+- `data_overview.m` read the file `data_preprocessed.mat` and preprocess the data (by taking simple moving average over 7 days), and store the preprocessed data in the file `data_averaged.mat`.
+- **The results in the paper can be obtained by running`test_europe_data.m`.**

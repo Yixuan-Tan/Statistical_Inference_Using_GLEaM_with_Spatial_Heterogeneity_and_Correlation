@@ -26,8 +26,8 @@ lambda_before       = x((2*n_country+1)); % scalar
 lambda_later        = x((2*n_country+2)); % scalar
 
 
-I   = x(1:n_country);
-E   = x((n_country+1):(2*n_country));
+I   = x(1:n_country)*1e6;
+E   = x((n_country+1):(2*n_country))*1e6;
 tot = ini.totPop; 
 S   = tot - I - E - ini.R0;
 
