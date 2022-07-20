@@ -45,10 +45,8 @@ testDays_end    = totDays;
 ini.totPop = provPop;
 %ini.traVal = traVal;
 ini.part   = cell(2, 1);
-% ini.part{1} = [1;2];
-% ini.part{2} = [3;4];
-ini.part{1} = [1;3];
-ini.part{2} = [2;4];
+ini.part{1} = [1;2];
+ini.part{2} = [3;4];
 
 
 ini.delta  = delta;

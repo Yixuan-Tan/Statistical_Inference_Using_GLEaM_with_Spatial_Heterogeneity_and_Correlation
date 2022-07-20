@@ -107,7 +107,7 @@ ini.totPop = provPop;
 %ini.traVal = traVal;
 
 %------------------------------------
-% % mismatch of group
+% % mismatch of group assignment
 % groupIndex2 = groupIndex;
 % group_ind_temp = 1:provNum;
 % groupIndex2(min(group_ind_temp(groupIndex==1))) = 2;
@@ -2327,39 +2327,6 @@ sgtitle({"Absolute errors of predicted trajectories for all models", ''}, 'FontS
 
 coord = zeros(provNum, 2);
 size = 0.1;
-% coord(1,:) = [-1*size,3*size];
-% coord(2,:) = [0*size,3*size];
-% coord(3,:) = [1*size,3*size];
-% coord(4,:) = [-1*size,2*size];
-% coord(5,:) = [0*size,2*size];
-% coord(6,:) = [1*size,2*size];
-% coord(7,:) = [-1*size,1*size];
-% coord(8,:) = [0*size,1*size];
-% coord(9,:) = [1*size,1*size];
-% 
-% coord(10,:) = [-3.9*size,-1*size];
-% coord(11,:) = [-3*size,-1*size];
-% coord(12,:) = [-2.1*size,-1*size];
-% coord(13,:) = [-1.2*size,-1*size];
-% coord(14,:) = [-3.9*size,-2*size];
-% coord(15,:) = [-3*size,-2*size];
-% coord(16,:) = [-2.1*size,-2*size];
-% coord(17,:) = [-1.2*size,-2*size];
-% coord(18,:) = [-3.9*size,-3*size];
-% coord(19,:) = [-3*size,-3*size];
-% coord(20,:) = [-2.1*size,-3*size];
-% coord(21,:) = [-1.2*size,-3*size];
-
-% coord(22,:) = [1.2*size,-1*size];
-% coord(23,:) = [2.1*size,-1*size];
-% coord(24,:) = [3*size,-1*size];
-% coord(25,:) = [1.2*size,-2*size];
-% coord(26,:) = [2.1*size,-2*size];
-% coord(27,:) = [3*size,-2*size];
-% coord(28,:) = [1.2*size,-3*size];
-% coord(29,:) = [2.1*size,-3*size];
-% coord(30,:) = [3*size,-3*size];
-
 
 coord(1,:) = [-2*size,5.5*size];
 coord(2,:) = [-0.5*size,5.5*size];
