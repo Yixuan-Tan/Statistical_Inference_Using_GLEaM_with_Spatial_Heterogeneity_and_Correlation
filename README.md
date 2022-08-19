@@ -8,3 +8,4 @@ The COVID-19 data in European countries are from [COVID-19 Data Repository by th
 
 
 
+The COVID-19 data in China are collected with the help of [LNKMED Tech Co ., Ltd](https://www.lnkmed.com/#/homePage) from the official websites of health commissions. The data  are not publicly available due to that the official websites of health commissions of some provinces in China no longer maintain the COVID-19 data before March of 2020,  but are available from the corresponding author on request.
